@@ -14,3 +14,12 @@ export function testMe(number: number) {
 export function foo(s: string) {
   return 7;
 }
+
+export { getApiKey, getApiId } from "./secret";
+export {
+  testApiCall,
+  fetchTeachers,
+  fetchTeacherByEmail,
+  fetchCourses,
+  fetchLineItems,
+} from "./aspen";

@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run watch:all\" \"vite --open mock/mock.html\"",
+    "dev": "printenv && concurrently \"npm run watch:all\" \"vite --open mock/mock.html\"",
     "pre-build": "cp ./dist/appsscript.json ./appsscript.json.bak && npm run build:all",
     "post-build": "cp ./appsscript.json.bak ./dist/appsscript.json && rm ./appsscript.json.bak",
     "build-svelte": "vite build",
@@ -17,7 +17,7 @@
     "push-to-clasp": "npm run build && clasp push",
     "watch:all": "chokidar 'src/gas/api.ts' -c 'npm run build:all'",
     "build:all": "npm-run-all build-types build-mocks build-gas-api",
-    "build-gas-api":"create-client-api src/gas/api.ts src/svelte/gasApi.ts",
+    "build-gas-api": "create-client-api src/gas/api.ts src/svelte/gasApi.ts",
     "build-types": "add-google-run-types src/gas/api.ts src/svelte/types/google.script.run.d.ts",
     "build-mocks": "add-google-run-mocks src/gas/api.ts src/svelte/mock/mockApi.ts"
   },
@@ -41,6 +41,7 @@
     "@types/google-apps-script": "^1.0.76",
     "@types/google-apps-script-oauth2": "^38.0.2",
     "@types/google.picker": "^0.0.41",
+    "dotenv": "^16.4.5",
     "google-apps-script-run-ts-mocks": "^0.0.3",
     "google-apps-script-svelte-components": "^0.0.3",
     "svelte": "4.2.2"

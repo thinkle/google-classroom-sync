@@ -6,7 +6,14 @@ declare namespace google.script {
       withUserObject(object: Object): this;
       getActiveUserEmail(): void;
   testMe(number: number): void;
-  foo(s: string): void
+  foo(s: string): void;
+  getApiKey(): void;
+  getApiId(): void;
+  testApiCall(): void;
+  fetchTeachers(): void;
+  fetchTeacherByEmail(email: string): void;
+  fetchCourses(teacher: User): void;
+  fetchLineItems(course: Course): void
   }
   const run : GoogleScriptRun;
 

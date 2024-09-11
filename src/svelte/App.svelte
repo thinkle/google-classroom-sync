@@ -1,41 +1,64 @@
 <script lang="ts">
   import Counter from "./lib/Counter.svelte";
-  import { Block, Icon, work } from "google-apps-script-svelte-components";
+  import { Block, Icon } from "google-apps-script-svelte-components";
   import { parseContext } from "./lib/parseContext";
   import { GoogleAppsScript } from "./gasApi";
   import { onMount } from "svelte";
+  import type { User, LineItems, Coures } from "../gas/types";
+
   let email;
   let contextString = `<? context ?>`;
   let context = parseContext(contextString);
+  let clientId;
+  let apiResult;
+  let teachers: User[] = [];
+  let teacher: User | null = null;
+  let courses: Course[] = [];
+  let lineItems: LineItems[] = [];
+
   onMount(async () => {
     email = await GoogleAppsScript.getActiveUserEmail();
+    clientId = await GoogleAppsScript.getApiId();
+    /* apiResult = await GoogleAppsScript.testApiCall();
+    teachers = await GoogleAppsScript.fetchTeachers(); */
+    teacher = await GoogleAppsScript.fetchTeacherByEmail(
+      "thinkle@innovationcharter.org"
+    );
+    courses = await GoogleAppsScript.fetchCourses(teacher);
+    lineItems = await GoogleAppsScript.fetchLineItems(
+      courses[courses.length - 1]
+    );
   });
 </script>
 
 <main>
-  <h1>Vite + Svelte + AppsScript</h1>
-  <Block>
-    <h2>I am a Svelte Component</h2>
-    <Counter />
+  <h1>Google Classroom Sync Tool!</h1>
+  <p>{clientId} aspen ID</p>
+  <p>{email} email</p>
+  <p>
+    The teacher is:
+    {JSON.stringify(teacher)}
+  </p>
+  <p>
+    API call got:
+
     <br />
-    <a href="https://learn.svelte.dev/tutorial/welcome-to-svelte">
-      Learn Svelte
-    </a>
-  </Block>
-  <Block>
-    <h2>I am a Material Icon</h2>
-    <Icon fontSize="32px" icon={work.round} />
-  </Block>
-  <Block>
-    <h2>I am an Apps Script Call</h2>
-    {#if email}
-      Why, hello there, {email}. Look, I made an API call!
+    {JSON.stringify(apiResult)}
+    {#if teachers}
+      {#each teachers as teacher}
+        <div>Teacher: {JSON.stringify(teacher)}</div>
+      {/each}
     {/if}
-  </Block>
-  <Block>
-    Wow, we are in a {context.container}
-    being run from {context.addOn}.
-  </Block>
+  </p>
+  <p>
+    Courses:
+    {JSON.stringify(courses)}
+  </p>
+  <p>
+    Line Items:
+    {JSON.stringify(lineItems)}
+  </p>
+
   <div>
     <span class="gray">
       Created with
