@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "create-clasp-project": "node createClaspProject.js",
-    "push-to-clasp": "npm run build && clasp push",
+    "push-to-clasp": "npm run build && cd dist &&  cp ../.clasp.json.backup ./.clasp.json && clasp push",
     "watch:all": "chokidar 'src/gas/api.ts' -c 'npm run build:all'",
     "build:all": "npm-run-all build-types build-mocks build-gas-api",
     "build-gas-api": "create-client-api src/gas/api.ts src/svelte/gasApi.ts",
