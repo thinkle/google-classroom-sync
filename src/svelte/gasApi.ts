@@ -73,12 +73,12 @@ export const GoogleAppsScript = {
       });
     },
 
-     fetchCourses(teacher: User): Promise<Promise<Course[]>> {
+     fetchAspenCourses(teacher: User): Promise<Promise<Course[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: Promise<Course[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .fetchCourses(teacher);
+          .fetchAspenCourses(teacher);
       });
     },
 
@@ -88,6 +88,51 @@ export const GoogleAppsScript = {
           .withSuccessHandler((result: Promise<LineItem[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchLineItems(course);
+      });
+    },
+
+     fetchCategories(course: any): Promise<Promise<Category[]>> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: Promise<Category[]>) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchCategories(course);
+      });
+    },
+
+     fetchGradingPeriods(): Promise<Promise<GradingPeriod[]>> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: Promise<GradingPeriod[]>) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchGradingPeriods();
+      });
+    },
+
+     fetchGoogleAssessments(courseId: any): Promise<GoogleAppsScript.Classroom.Schema.CourseWork[]> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: GoogleAppsScript.Classroom.Schema.CourseWork[]) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchGoogleAssessments(courseId);
+      });
+    },
+
+     fetchGoogleCourses(): Promise<any[]> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: any[]) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchGoogleCourses();
+      });
+    },
+
+     fetchGoogleGrades(courseId: any, assessmentId: any): Promise<Grade[]> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: Grade[]) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchGoogleGrades(courseId, assessmentId);
       });
     }
 }

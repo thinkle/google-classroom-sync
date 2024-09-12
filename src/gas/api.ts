@@ -20,6 +20,14 @@ export {
   testApiCall,
   fetchTeachers,
   fetchTeacherByEmail,
-  fetchCourses,
+  fetchAspenCourses,
   fetchLineItems,
+  fetchCategories,
+  fetchGradingPeriods,  
 } from "./aspen";
+
+export {
+  fetchGoogleAssessments,
+  fetchGoogleCourses,
+  fetchGoogleGrades,
+} from "./googleClassroom";

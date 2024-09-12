@@ -1,78 +1,71 @@
 <script lang="ts">
-  import Counter from "./lib/Counter.svelte";
-  import { Block, Icon } from "google-apps-script-svelte-components";
-  import { parseContext } from "./lib/parseContext";
-  import { GoogleAppsScript } from "./gasApi";
-  import { onMount } from "svelte";
-  import type { User, LineItems, Coures } from "../gas/types";
+	import AspenCourse from './AspenCourse.svelte';
+  import AspenGradingPeriodSelector from "./AspenGradingPeriodSelector.svelte";
 
-  let email;
-  let contextString = `<? context ?>`;
-  let context = parseContext(contextString);
-  let clientId;
-  let apiResult;
-  let teachers: User[] = [];
-  let teacher: User | null = null;
+
+  import { onMount } from "svelte";
+  import { GoogleAppsScript } from "./gasApi";
+  import AspenClassList from "./AspenClassList.svelte";
+  import type { User, Course, LineItem } from "../gas/types";
+
+  let email: string;
+  let teacher: User | undefined;
   let courses: Course[] = [];
-  let lineItems: LineItems[] = [];
 
   onMount(async () => {
-    email = await GoogleAppsScript.getActiveUserEmail();
-    clientId = await GoogleAppsScript.getApiId();
-    /* apiResult = await GoogleAppsScript.testApiCall();
-    teachers = await GoogleAppsScript.fetchTeachers(); */
-    teacher = await GoogleAppsScript.fetchTeacherByEmail(
-      "thinkle@innovationcharter.org"
-    );
-    courses = await GoogleAppsScript.fetchCourses(teacher);
-    lineItems = await GoogleAppsScript.fetchLineItems(
-      courses[courses.length - 1]
-    );
+    console.log('Main app mounting')
   });
+  async function getGoogleEmail () {
+    email = await GoogleAppsScript.getActiveUserEmail();
+  }
+  async function getAspenTeacher () {
+    teacher = await GoogleAppsScript.fetchTeacherByEmail(email);
+  }
+  async function getAspenCourses () {
+    if (teacher) {
+      courses = await GoogleAppsScript.fetchAspenCourses(teacher);
+    }
+  }
+  
+  let theCourse;
+  const selectCourse = async (event) => {
+    theCourse = event.detail.selectedClass;        
+  };
+  let showCats = false;
 </script>
 
 <main>
   <h1>Google Classroom Sync Tool!</h1>
-  <p>{clientId} aspen ID</p>
-  <p>{email} email</p>
+  <p>Google account: {email}</p>
+  <button on:click={getGoogleEmail}>Get Google Email</button>
+  <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
+  <button on:click={getAspenCourses}>Get Aspen Courses</button>
+  <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
+  <button on:click={() => showCats = !showCats}>Show Categories</button>
+  
+  
   <p>
-    The teacher is:
-    {JSON.stringify(teacher)}
+    Logged in as: {teacher
+      ? `${teacher.givenName} ${teacher.familyName}`
+      : "loading..."}
   </p>
-  <p>
-    API call got:
-
-    <br />
-    {JSON.stringify(apiResult)}
-    {#if teachers}
-      {#each teachers as teacher}
-        <div>Teacher: {JSON.stringify(teacher)}</div>
-      {/each}
-    {/if}
-  </p>
-  <p>
-    Courses:
-    {JSON.stringify(courses)}
-  </p>
-  <p>
-    Line Items:
-    {JSON.stringify(lineItems)}
-  </p>
-
-  <div>
-    <span class="gray">
-      Created with
-      <a
-        target="_blank"
-        href="https://github.com/thinkle/Google-Apps-Script-Svelte-Starter"
-      >
-        Google Apps Script + Svelte Starter Kit
-      </a>
-      by
-      <a target="_blank" href="https://www.tomhinkle.net"> Tom Hinkle </a>
-    </span>
-  </div>
+  {#if courses.length > 0}
+    <h2>Aspen Courses for {teacher.givenName} {teacher.familyName}</h2>
+    <p>Select a course to connect with google:</p>
+    <AspenClassList {courses} on:select={selectCourse} />        
+  {:else}
+    <p>Loading courses...</p>
+  {/if}
+  {#if theCourse}
+    <AspenCourse course={theCourse}></AspenCourse>  
+  
+  {/if}
+  
 </main>
 
 <style>
+  main {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
 </style>

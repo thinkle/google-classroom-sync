@@ -12,8 +12,13 @@ declare namespace google.script {
   testApiCall(): void;
   fetchTeachers(): void;
   fetchTeacherByEmail(email: string): void;
-  fetchCourses(teacher: User): void;
-  fetchLineItems(course: Course): void
+  fetchAspenCourses(teacher: User): void;
+  fetchLineItems(course: Course): void;
+  fetchCategories(course: any): void;
+  fetchGradingPeriods(): void;
+  fetchGoogleAssessments(courseId: any): void;
+  fetchGoogleCourses(): void;
+  fetchGoogleGrades(courseId: any, assessmentId: any): void
   }
   const run : GoogleScriptRun;
 

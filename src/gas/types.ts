@@ -64,3 +64,16 @@ interface Reference {
   sourcedId: string;
   type: string;
 }
+// Interface for Category
+interface Category {
+  href: string;
+  sourcedId: string;
+  type: string;
+}
+
+// Interface for GradingPeriod
+interface GradingPeriod {
+  href: string;
+  sourcedId: string;
+  type: string;
+}
