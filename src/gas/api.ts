@@ -15,15 +15,20 @@ export function foo(s: string) {
   return 7;
 }
 
-export { getApiKey, getApiId } from "./secret";
-export {
-  testApiCall,
-  fetchTeachers,
-  fetchTeacherByEmail,
+import { fetchTeacherByEmail } from "./aspen";
+
+export function fetchAspenTeacher () {
+  let email = getActiveUserEmail();
+  return fetchTeacherByEmail(email);
+}
+
+
+export {    
   fetchAspenCourses,
   fetchLineItems,
   fetchCategories,
   fetchGradingPeriods,  
+  createLineItem
 } from "./aspen";
 
 export {

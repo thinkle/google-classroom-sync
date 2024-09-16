@@ -50,7 +50,6 @@ export async function fetchTeachers(): Promise<User[]> {
 
 export async function fetchTeacherByEmail(email: string): Promise<User> {
   const accessToken = await getAccessToken(); // Ensure this function call is awaited or handled with a promise
-
   const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/teachers?filter=email=${email}`;
   const response = await httpRequest(url, {
     method: "GET",
@@ -66,7 +65,16 @@ export async function fetchTeacherByEmail(email: string): Promise<User> {
 }
 
 export async function fetchAspenCourses(teacher: User): Promise<Course[]> {
-  const accessToken = await getAccessToken();
+  // Security layer...
+  let teacherEmail = teacher.email;
+  if (typeof Session !== "undefined") {
+    let loggedInEmail = Session.getActiveUser().getEmail();
+    
+    if (teacherEmail !== loggedInEmail) {
+      throw new Error("Unauthorized access to teacher data");
+    }
+  }
+  const accessToken = await getAccessToken();  
   const teacherId = teacher.sourcedId;
   const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/teachers/${teacherId}/classes?limit=100&offset=0&orderBy=asc`;
 
@@ -170,14 +178,14 @@ export async function fetchGradingPeriods(): Promise<GradingPeriod[]> {
 }
 
 export async function createLineItem(
-  course: Course,
+  id : string,
   lineItemData: LineItem
 ): Promise<LineItem> {
   const accessToken = await getAccessToken();
-  const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/classes/${course.sourcedId}/lineItems`;
+  const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/lineItems/${id}`;
 
   const response = await httpRequest(url, {
-    method: "POST",
+    method: "PUT",
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${accessToken}`,
@@ -194,3 +202,4 @@ export async function createLineItem(
   console.log("Line item created: ", data.lineItem);
   return data.lineItem;
 }
+

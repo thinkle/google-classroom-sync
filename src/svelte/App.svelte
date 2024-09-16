@@ -17,32 +17,42 @@
   });
   async function getGoogleEmail () {
     email = await GoogleAppsScript.getActiveUserEmail();
+    getAspenTeacher();
   }
   async function getAspenTeacher () {
-    teacher = await GoogleAppsScript.fetchTeacherByEmail(email);
+    teacher = await GoogleAppsScript.fetchAspenTeacher();
   }
   async function getAspenCourses () {
     if (teacher) {
       courses = await GoogleAppsScript.fetchAspenCourses(teacher);
     }
   }
+  function reset () {
+    teacher = undefined;
+    email = undefined;
+    courses = [];
+  }
   
   let theCourse;
   const selectCourse = async (event) => {
     theCourse = event.detail.selectedClass;        
   };
-  let showCats = false;
+  
 </script>
 
 <main>
   <h1>Google Classroom Sync Tool!</h1>
-  <p>Google account: {email}</p>
-  <button on:click={getGoogleEmail}>Get Google Email</button>
-  <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
-  <button on:click={getAspenCourses}>Get Aspen Courses</button>
-  <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
-  <button on:click={() => showCats = !showCats}>Show Categories</button>
-  
+  {#if email}<p>Google account: {email}
+    (<button on:click={()=>reset}>Log out</button>)    
+  </p>{:else}
+    <button on:click={getGoogleEmail}>Log In</button>
+  {/if}
+  {#if !teacher}
+    <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
+  {:else}
+    <button on:click={getAspenCourses}>Get Aspen Courses</button>
+    <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
+  {/if}
   
   <p>
     Logged in as: {teacher

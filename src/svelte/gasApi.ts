@@ -28,48 +28,12 @@ export const GoogleAppsScript = {
       });
     },
 
-     getApiKey(): Promise<string> {
-      return new Promise((resolve, reject) => {
-        google.script.run
-          .withSuccessHandler((result: string) => resolve(result))
-          .withFailureHandler((error: any) => reject(error))
-          .getApiKey();
-      });
-    },
-
-     getApiId(): Promise<string> {
-      return new Promise((resolve, reject) => {
-        google.script.run
-          .withSuccessHandler((result: string) => resolve(result))
-          .withFailureHandler((error: any) => reject(error))
-          .getApiId();
-      });
-    },
-
-     testApiCall(): Promise<Promise<any>> {
-      return new Promise((resolve, reject) => {
-        google.script.run
-          .withSuccessHandler((result: Promise<any>) => resolve(result))
-          .withFailureHandler((error: any) => reject(error))
-          .testApiCall();
-      });
-    },
-
-     fetchTeachers(): Promise<Promise<User[]>> {
-      return new Promise((resolve, reject) => {
-        google.script.run
-          .withSuccessHandler((result: Promise<User[]>) => resolve(result))
-          .withFailureHandler((error: any) => reject(error))
-          .fetchTeachers();
-      });
-    },
-
-     fetchTeacherByEmail(email: string): Promise<Promise<User>> {
+     fetchAspenTeacher(): Promise<Promise<User>> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: Promise<User>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .fetchTeacherByEmail(email);
+          .fetchAspenTeacher();
       });
     },
 
@@ -106,6 +70,15 @@ export const GoogleAppsScript = {
           .withSuccessHandler((result: Promise<GradingPeriod[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchGradingPeriods();
+      });
+    },
+
+     createLineItem(id: string, lineItemData: LineItem): Promise<Promise<LineItem>> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: Promise<LineItem>) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .createLineItem(id, lineItemData);
       });
     },
 

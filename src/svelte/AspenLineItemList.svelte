@@ -5,7 +5,11 @@
   export let course;    
   let lineItems : LineItem = [];
   export let categories;
-  
+  export let onSelected = (
+    lineItem: LineItem
+  ) => {
+    console.log("Fix me! User selected:", JSON.stringify(lineItem));
+  };  
   
 </script>
 
@@ -20,7 +24,10 @@
     </thead>
     <tbody>
     {#each lineItems as item}
-      <tr>
+      <tr
+        on:click={() => onSelected(item)}
+        style="cursor: pointer;"
+      >
         <td class="title">{item.title}</td> 
         <td class="due">Due: {new Date(item.dueDate).toLocaleDateString(
           { weekday: 'short', month: 'numeric', day: 'numeric' })
