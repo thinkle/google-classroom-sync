@@ -7,15 +7,12 @@ declare namespace google.script {
       getActiveUserEmail(): void;
   testMe(number: number): void;
   foo(s: string): void;
-  getApiKey(): void;
-  getApiId(): void;
-  testApiCall(): void;
-  fetchTeachers(): void;
-  fetchTeacherByEmail(email: string): void;
+  fetchAspenTeacher(): void;
   fetchAspenCourses(teacher: User): void;
   fetchLineItems(course: Course): void;
   fetchCategories(course: any): void;
   fetchGradingPeriods(): void;
+  createLineItem(id: string, lineItemData: LineItem): void;
   fetchGoogleAssessments(courseId: any): void;
   fetchGoogleCourses(): void;
   fetchGoogleGrades(courseId: any, assessmentId: any): void
