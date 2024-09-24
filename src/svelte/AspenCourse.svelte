@@ -57,16 +57,20 @@
     Unlink Class
   </button>
   {#if categories.length}
+  {#key googleId}
   <GoogleAssignmentMapper 
     googleCourseId={googleId} 
     aspenCourse={course}
     {categories}
   />
+  {/key}
   {/if}
 {:else}
-  <GoogleCourseLinker 
-    aspenCourse={course}
-    />
+  {#key course}
+    <GoogleCourseLinker 
+      aspenCourse={course}
+      />
+  {/key}
 {/if}
 
 

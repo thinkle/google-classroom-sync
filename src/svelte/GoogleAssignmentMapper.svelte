@@ -1,4 +1,6 @@
 <script lang="ts">
+  import GradePoster from './GradePoster.svelte';
+
 	import { googleAssignments } from './store.ts';
   import AspenCategorySelector from "./AspenCategorySelector.svelte";
   import AspenLineItemList from "./AspenLineItemList.svelte";
@@ -24,6 +26,9 @@
     assignments = await GoogleAppsScript.fetchGoogleAssessments(
       googleCourse.id
     );
+    for (let a of assignments) {
+      $googleAssignments[a.id] = a;
+    }
   }
 
   let selectedGoogleAssignment = null;
@@ -97,6 +102,12 @@
     $assignmentMap[aspenId] = googleId;
     $assignmentMap[googleId] = aspenId;
   }
+  async function getGrades (assignment) {
+    let grades = await GoogleAppsScript.fetchGoogleGrades(
+      googleCourseId,  
+      assignment.id);
+    console.log('Grades:', grades);
+  }
 </script>
 
 <h2>Assignments for {aspenCourse.title}</h2>
@@ -107,12 +118,12 @@
     {#if googleCourse}
       <button on:click={fetchAssignments}>Fetch Google Assignments</button>
       {#each assignments as assignment}
-        <div
-          on:click={() => {
-            selectedGoogleAssignment = assignment;
-          }}
+        <div          
           class:selected={selectedGoogleAssignment == assignment}
         >
+          <button on:click={
+            ()=>selectedGoogleAssignment = assignment
+          }>Link</button>
           <span class="title">{assignment.title}</span>
           <span class="max-points">{assignment.maxPoints}</span>
           {#if assignment.dueDate}
@@ -128,6 +139,12 @@
             )
             </span>
           {/if}
+          <GradePoster 
+            googleCourseId={googleCourseId}
+            {aspenCourse}
+            aspenAssignment={$aspenAssignments[$assignmentMap[assignment.id]]}
+            googleAssignment={assignment}            
+          ></GradePoster>
         </div>
       {/each}
     {/if}

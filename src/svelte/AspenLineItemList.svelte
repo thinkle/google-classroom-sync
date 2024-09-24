@@ -18,7 +18,7 @@
     lineItems = await GoogleAppsScript.fetchLineItems(course);
     $lineItemStore[course.sourcedId] = lineItems;
     for (let li of lineItems) {
-      aspenAssignments[li.sourcedId] = li;
+      $aspenAssignments[li.sourcedId] = li;
     }
   }
   

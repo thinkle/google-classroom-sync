@@ -30,3 +30,4 @@ export const courseMap = createPersistentStore("courseMap", {});
 export const assignmentMap = createPersistentStore("assignmentMap", {});
 export const googleAssignments = createPersistentStore("googleAssignments", {});
 export const aspenAssignments = createPersistentStore("aspenAssignments", {});
+export const studentLookup = createPersistentStore("studentLookup", {});

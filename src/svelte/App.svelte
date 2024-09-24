@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Test from './Test.svelte';
+
 	import AspenCourse from './AspenCourse.svelte';
   import AspenGradingPeriodSelector from "./AspenGradingPeriodSelector.svelte";
 
@@ -41,6 +43,7 @@
 </script>
 
 <main>
+  
   <h1>Google Classroom Sync Tool!</h1>
   {#if email}<p>Google account: {email}
     (<button on:click={()=>reset}>Log out</button>)    
@@ -60,7 +63,11 @@
       : "loading..."}
   </p>
   {#if courses.length > 0}
-    <h2>Aspen Courses for {teacher.givenName} {teacher.familyName}</h2>
+    <Test course={courses[0]}/>
+    <h2>
+      Aspen Courses for 
+      {teacher.givenName} {teacher.familyName}
+    </h2>
     <p>Select a course to connect with google:</p>
     <AspenClassList {courses} on:select={selectCourse} />        
   {:else}
@@ -68,7 +75,6 @@
   {/if}
   {#if theCourse}
     <AspenCourse course={theCourse}></AspenCourse>  
-  
   {/if}
   
 </main>

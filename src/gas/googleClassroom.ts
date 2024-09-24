@@ -15,7 +15,7 @@ export function fetchGoogleCourses() {
       state: course.courseState,
     }));
   }
-  Logger.log(
+  console.log(
     "Courses fetched for %s: %s",
     teacherEmail,
     JSON.stringify(courses)
@@ -77,13 +77,14 @@ export function fetchGoogleGrades(courseId, assessmentId): Grade[] {
       studentEmail: studentDetails.emailAddress,
       studentName: studentDetails.name.fullName, // or format as last, first
       assignedGrade: submission.assignedGrade, // Handle missing grades
+      draftGrade: submission.draftGrade, // Handle draft grades
       maximumGrade: maxPoints,
       submissionState: submission.state, // Returned, Missing, etc.
       late: submission.late, // Boolean value
     };
   });
 
-  Logger.log(
+  console.log(
     "Detailed grades for assessment %s in course %s: %s",
     assessmentId,
     courseId,
