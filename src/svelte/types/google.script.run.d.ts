@@ -13,6 +13,8 @@ declare namespace google.script {
   fetchCategories(course: any): void;
   fetchGradingPeriods(): void;
   createLineItem(id: string, lineItemData: LineItem): void;
+  fetchAspenRoster(classId: string): void;
+  postGrade(id: any, lineItem: any, student: any, score: any, comment: any): void;
   fetchGoogleAssessments(courseId: any): void;
   fetchGoogleCourses(): void;
   fetchGoogleGrades(courseId: any, assessmentId: any): void

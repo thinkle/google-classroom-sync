@@ -25,7 +25,9 @@ export {
   fetchAspenCourses,
   fetchCategories,
   fetchGradingPeriods,
-  createLineItem
+  createLineItem,
+  fetchAspenRoster,
+  postGrade
 } from "../../gas/aspen";
 
 import {
@@ -322,3 +324,5 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
 export function fetchAspenTeacher(): Promise<User> {
   return fetchTeacherByEmail('thinkle@innovationcharter.org');
 }
+
+

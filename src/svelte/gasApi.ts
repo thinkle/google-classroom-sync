@@ -82,6 +82,24 @@ export const GoogleAppsScript = {
       });
     },
 
+     fetchAspenRoster(classId: string): Promise<Promise<User[]>> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: Promise<User[]>) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchAspenRoster(classId);
+      });
+    },
+
+     postGrade(id: any, lineItem: any, student: any, score: any, comment: any): Promise<Promise<any>> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: Promise<any>) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .postGrade(id, lineItem, student, score, comment);
+      });
+    },
+
      fetchGoogleAssessments(courseId: any): Promise<GoogleAppsScript.Classroom.Schema.CourseWork[]> {
       return new Promise((resolve, reject) => {
         google.script.run

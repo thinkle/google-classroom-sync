@@ -28,7 +28,9 @@ export {
   fetchLineItems,
   fetchCategories,
   fetchGradingPeriods,  
-  createLineItem
+  createLineItem,
+  fetchAspenRoster,
+  postGrade
 } from "./aspen";
 
 export {

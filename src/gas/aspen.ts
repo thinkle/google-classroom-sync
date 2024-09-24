@@ -1,5 +1,8 @@
 import { getApiId, getApiKey } from "./secret";
-import { httpRequest } from "./util";
+import { httpRequest, getProp, setProp } from "./util";
+
+const TOKEN_KEY = 'aspen_access_token';
+const EXPIRATION_KEY = 'aspen_token_expiration';
 
 export async function testApiCall() {
   let response = await httpRequest(
@@ -11,6 +14,18 @@ export async function testApiCall() {
 }
 
 async function getAccessToken() {
+  const now = Date.now();
+
+  // Get token and expiration from the appropriate storage
+  const cachedToken = getProp(TOKEN_KEY);
+  const tokenExpiration = parseInt(getProp(EXPIRATION_KEY) || "0");
+
+  // Check if the token is cached and still valid
+  if (cachedToken && tokenExpiration && now < tokenExpiration) {
+    console.log('Using cached token');
+    return cachedToken;
+  }
+
   const url = "https://ma-innovation.myfollett.com/oauth/rest/v2.0/auth";
   const clientId = getApiId();
   const clientSecret = getApiKey();
@@ -27,7 +42,16 @@ async function getAccessToken() {
 
   const response = await httpRequest(url, options);
   const data = await response.json();
-  return data.access_token; // The token you'll use for subsequent API requests
+  const expiresIn = data.expires_in || 3600; // Default to 1 hour if not provided
+
+  // Cache the token and its expiration time
+  const newToken = data.access_token;
+  const newExpiration = now + expiresIn * 1000; // Convert expiresIn to milliseconds
+
+  setProp(TOKEN_KEY, newToken);
+  setProp(EXPIRATION_KEY, newExpiration.toString());
+
+  return newToken;
 }
 
 export async function fetchTeachers(): Promise<User[]> {
@@ -203,3 +227,70 @@ export async function createLineItem(
   return data.lineItem;
 }
 
+export async function fetchAspenRoster (classId: string): Promise<User[]> {
+  const accessToken = await getAccessToken();
+  const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/classes/${classId}/students?limit=100&offset=0&orderBy=asc`;
+
+  const response = await httpRequest(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch students: " + (await response.text()));
+  }
+
+  const data = await response.json();
+  console.log("Students fetched: ", data.users);
+  return data.users;
+}
+
+export async function postResult(resultId: string, resultData: any): Promise<any> {
+  const accessToken = await getAccessToken();
+  const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/results/${resultId}`;
+
+  const response = await httpRequest(url, {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(resultData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to post result: " + (await response.text()));
+  }
+
+  const data = await response.json();
+  console.log("Result posted: ", data);
+  return data;
+}
+
+export async function postGrade (
+  id, lineItem, student, score, comment
+) {
+  let resultObject = {
+    result : {
+      lineItem : {
+        sourcedId : lineItem.sourcedId,
+        href: lineItem.href,
+        type : lineItem.type
+      },
+      student : {
+        sourcedId : student.sourcedId,
+        href: student.href,
+        type : student.type
+      },
+      score : score,
+      comment : comment
+    
+    }
+  };
+  let data = await postResult(id, resultObject);
+  return data;
+}
