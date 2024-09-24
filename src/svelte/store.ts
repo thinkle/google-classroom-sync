@@ -1,4 +1,8 @@
-import { writable } from "svelte/store";
+import { Writable, writable } from "svelte/store";
+
+export let lineItemStore : Writable<{
+  [key : string] : LineItem[];
+}> = writable({});
 
 function createPersistentStore(key, startValue) {
   const storedValue = localStorage.getItem(key);
@@ -24,3 +28,5 @@ function createPersistentStore(key, startValue) {
 
 export const courseMap = createPersistentStore("courseMap", {});
 export const assignmentMap = createPersistentStore("assignmentMap", {});
+export const googleAssignments = createPersistentStore("googleAssignments", {});
+export const aspenAssignments = createPersistentStore("aspenAssignments", {});

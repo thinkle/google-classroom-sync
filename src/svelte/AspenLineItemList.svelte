@@ -1,18 +1,31 @@
 <script lang="ts">
+	
   
   import CategoryTag from './CategoryTag.svelte';
   import { GoogleAppsScript } from './gasApi';
+  import { aspenAssignments, assignmentMap, googleAssignments, lineItemStore } from './store';
   export let course;    
   let lineItems : LineItem = [];
   export let categories;
+  $: lineItems = $lineItemStore[course.sourcedId] || [];
   export let onSelected = (
     lineItem: LineItem
   ) => {
     console.log("Fix me! User selected:", JSON.stringify(lineItem));
   };  
-  
-</script>
 
+  async function fetchLineItems () {
+    lineItems = await GoogleAppsScript.fetchLineItems(course);
+    $lineItemStore[course.sourcedId] = lineItems;
+    for (let li of lineItems) {
+      aspenAssignments[li.sourcedId] = li;
+    }
+  }
+  
+  
+
+</script>
+<button on:click={fetchLineItems}>Fetch items</button>
 {#if lineItems.length > 0}
   <table>
     <thead>
@@ -33,6 +46,17 @@
           { weekday: 'short', month: 'numeric', day: 'numeric' })
           .replace(/\/\d{4}$/, '')}</td>
         <td><CategoryTag lineItem={item} {categories}></CategoryTag></td>
+        <td>
+          {#if item.sourcedId in $assignmentMap}
+            {@const googleId = $assignmentMap[item.sourcedId]}
+            {@const googleAssignment = $googleAssignments[googleId]}
+            {#if googleAssignment}
+              <span>Linked to {googleAssignment.title}</span>
+            {:else}
+              <span>Linked to google assignment {googleId}</span>
+            {/if}
+          {/if}
+        </td>
       </tr>
     {/each}
     </tbody>
