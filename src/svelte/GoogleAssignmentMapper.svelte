@@ -24,9 +24,6 @@
     assignments = await GoogleAppsScript.fetchGoogleAssessments(
       googleCourse.id
     );
-    for (let a of assignments) {
-      $googleAssignments[a.id] = a;
-    }
   }
 
   let selectedGoogleAssignment = null;
