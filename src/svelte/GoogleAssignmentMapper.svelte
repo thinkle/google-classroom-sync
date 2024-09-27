@@ -6,6 +6,7 @@
   import AspenLineItemList from "./AspenLineItemList.svelte";
   import { GoogleAppsScript } from "./gasApi";
   import { aspenAssignments, assignmentMap } from "./store";
+  import { onMount } from "svelte";
 
   export let googleCourseId;
   export let aspenCourse;
@@ -14,6 +15,13 @@
   $: if (googleCourseId && !googleCourse) {
     fetchCourse();
   }
+  let fetchingAssignments = false;
+  onMount(async () => {
+    if (googleCourseId && !googleCourse) {
+      await fetchCourse();
+    };
+    await fetchAssignments();
+  });
 
   let assignments = [];
 
@@ -23,12 +31,19 @@
   }
 
   async function fetchAssignments() {
-    assignments = await GoogleAppsScript.fetchGoogleAssessments(
-      googleCourse.id
-    );
-    for (let a of assignments) {
-      $googleAssignments[a.id] = a;
+    fetchingAssignments = true;
+    try {
+      assignments = await GoogleAppsScript.fetchGoogleAssessments(
+        googleCourse.id
+      );
+      for (let a of assignments) {
+        $googleAssignments[a.id] = a;
+      }
+    } catch (err) {
+      console.error(err);
+      window.alert('Error fetching assignments: ' + err);
     }
+    fetchingAssignments = false;
   }
 
   let selectedGoogleAssignment = null;
@@ -132,7 +147,17 @@
       <p>First select a Google Assignment</p>
     {/if}
     {#if googleCourse}
-      <button on:click={fetchAssignments}>Fetch Google Assignments</button>
+      {#if !fetchingAssignments}
+        <button on:click={fetchAssignments}>
+          {#if assignments.length > 0}
+            Reload Google Assignments
+          {:else}
+            Fetch Google Assignments
+          {/if}          
+        </button>
+      {:else}
+        Loading google classroom assignments...
+      {/if}
       {#each assignments as assignment}
         {@const linked = $assignmentMap[assignment.id]}
         <div

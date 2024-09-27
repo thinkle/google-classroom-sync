@@ -13,8 +13,17 @@
   let teacher: User | undefined;
   let courses: Course[] = [];
 
+  let loading = false;
   onMount(async () => {
+    loading = true;
     console.log("Main app mounting");
+    console.log('Logging in to Google...');
+    await getGoogleEmail();
+    console.log('Fetching Aspen teacher...');
+    await getAspenTeacher();
+    console.log('Fetching Aspen courses...');
+    await getAspenCourses();        
+    loading = false;
   });
   async function getGoogleEmail() {
     email = await GoogleAppsScript.getActiveUserEmail();
@@ -68,26 +77,35 @@
   </header>
 
   <main>
-    {#if !email}
-      <button on:click={getGoogleEmail}>Log In to Google</button>
-    {/if}
-    {#if !teacher}
-      <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
+    {#if loading}
+      <p>Checking your Credentials with Google & Aspen
+        and trying to grab your classes...</p>
     {:else}
-      <button on:click={getAspenCourses}>Get Aspen Courses</button>
-      <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
+      {#if !email}
+        <button on:click={getGoogleEmail}>Log In to Google</button>
+      {/if}
+      {#if !teacher}
+        <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
+      {:else if courses.length == 0}
+        <button on:click={getAspenCourses}>Get Aspen Courses</button>
+        <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
+      {/if}
     {/if}
+    
     {#if courses.length > 0 && !theCourse}
       <!-- <Test course={courses[0]}/> -->
       <h2>
         Aspen Courses for
         {teacher.givenName}
         {teacher.familyName}
+        <button on:click={getAspenCourses}>reload</button>    
       </h2>
       <p>Select a course to connect with google:</p>
       <AspenClassList {courses} on:select={selectCourse} />
     {:else if !courses.length && loadingCourses}
       <p>Loading courses...</p>
+    {:else}
+      <button on:click={getAspenCourses}>reload</button>
     {/if}
     {#if theCourse}
       {#key theCourse.sourcedId}
