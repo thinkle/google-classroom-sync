@@ -15,7 +15,7 @@ const runMock = {
   },
 
   runFunction(f, args) {
-    let delay = Math.random() * 1000 + 300;
+    let delay = 1000;
     setTimeout(() => this.doRunFunction(f, args), delay);
   },
 
