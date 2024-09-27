@@ -46,8 +46,8 @@
     console.log('Pushing grades to Aspen...');
     let gradesToPost = grades.filter(
       (g)=>g.aspenStudent && (
-        g.assignedGrade || 
-        g.draftGrade && useDraft)
+        g.assignedGrade != null || 
+        g.draftGrade != null && useDraft)
     );
     console.log('Filtered us down to ',gradesToPost.length,'grades');
     for (let g of gradesToPost) {      
@@ -98,9 +98,8 @@ on:click={()=>console.log('Roster:', roster)}
   {#if grades}
     {@const unmappedGrades = grades.filter((g)=>!g.aspenStudent)}
     {@const readyGrades = grades.filter(
-      (g)=>g.aspenStudent && (
-        g.assignedGrade || 
-        g.draftGrade && useDraft
+      (g)=>g.aspenStudent && (g.assignedGrade != null || 
+        (g.draftGrade != null && useDraft)        
     )
     )}
     <button on:click={()=>pushGradesToAspen()}>

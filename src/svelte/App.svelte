@@ -1,9 +1,8 @@
 <script lang="ts">
-  import Test from './Test.svelte';
+  import Test from "./Test.svelte";
 
-	import AspenCourse from './AspenCourse.svelte';
+  import AspenCourse from "./AspenCourse.svelte";
   import AspenGradingPeriodSelector from "./AspenGradingPeriodSelector.svelte";
-
 
   import { onMount } from "svelte";
   import { GoogleAppsScript } from "./gasApi";
@@ -15,73 +14,101 @@
   let courses: Course[] = [];
 
   onMount(async () => {
-    console.log('Main app mounting')
+    console.log("Main app mounting");
   });
-  async function getGoogleEmail () {
+  async function getGoogleEmail() {
     email = await GoogleAppsScript.getActiveUserEmail();
     getAspenTeacher();
   }
-  async function getAspenTeacher () {
+  async function getAspenTeacher() {
     teacher = await GoogleAppsScript.fetchAspenTeacher();
   }
-  async function getAspenCourses () {
+  let loadingCourses = false;
+  async function getAspenCourses() {
+    loadingCourses = true;
     if (teacher) {
       courses = await GoogleAppsScript.fetchAspenCourses(teacher);
     }
+    loadingCourses = false;
   }
-  function reset () {
+  
+  function reset() {
     teacher = undefined;
     email = undefined;
     courses = [];
   }
-  
+
   let theCourse;
   const selectCourse = async (event) => {
-    theCourse = event.detail.selectedClass;        
+    theCourse = event.detail.selectedClass;
   };
-  
 </script>
 
-<main>
-  
-  <h1>Google Classroom Sync Tool!</h1>
-  {#if email}<p>Google account: {email}
-    (<button on:click={()=>reset}>Log out</button>)    
-  </p>{:else}
-    <button on:click={getGoogleEmail}>Log In</button>
-  {/if}
-  {#if !teacher}
-    <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
-  {:else}
-    <button on:click={getAspenCourses}>Get Aspen Courses</button>
-    <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
-  {/if}
-  
-  <p>
-    Logged in as: {teacher
-      ? `${teacher.givenName} ${teacher.familyName}`
-      : "loading..."}
-  </p>
-  {#if courses.length > 0}
-    <Test course={courses[0]}/>
-    <h2>
-      Aspen Courses for 
-      {teacher.givenName} {teacher.familyName}
-    </h2>
-    <p>Select a course to connect with google:</p>
-    <AspenClassList {courses} on:select={selectCourse} />        
-  {:else}
-    <p>Loading courses...</p>
-  {/if}
-  {#if theCourse}
-    <AspenCourse course={theCourse}></AspenCourse>  
-  {/if}
-  
-</main>
+<div class="page">
+  <header>
+    <div class="left"></div>
+    <div class="center">
+      <h1>Google Classroom Sync Tool!</h1>
+      {#if theCourse}
+        <h2>{theCourse.title} <button on:click={() => (theCourse = null)}>&times;</button></h2>
+      {/if}
+      
+    </div>
+    <div class="right">
+      {#if email}<div class="google-info"
+          >Google account: {email}
+          (<button on:click={() => reset}>Log out</button>)
+        </div>{/if}
+      <div class="aspen-info">
+        Aspen Login: {teacher
+          ? `${teacher.givenName} ${teacher.familyName}`
+          : "loading..."}
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {#if !email}
+      <button on:click={getGoogleEmail}>Log In to Google</button>
+    {/if}
+    {#if !teacher}
+      <button on:click={getAspenTeacher}>Get Aspen Teacher</button>
+    {:else}
+      <button on:click={getAspenCourses}>Get Aspen Courses</button>
+      <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
+    {/if}
+    {#if courses.length > 0 && !theCourse}
+      <!-- <Test course={courses[0]}/> -->
+      <h2>
+        Aspen Courses for
+        {teacher.givenName}
+        {teacher.familyName}
+      </h2>
+      <p>Select a course to connect with google:</p>
+      <AspenClassList {courses} on:select={selectCourse} />
+    {:else if !courses.length && loadingCourses}
+      <p>Loading courses...</p>
+    {/if}
+    {#if theCourse}
+      {#key theCourse.sourcedId}
+        <AspenCourse course={theCourse}></AspenCourse>
+      {/key}
+    {/if}
+  </main>
+</div>
 
 <style>
+  header {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    background-color: var(--primary-bg, white);
+    z-index: 1000;
+  }
   main {
     font-family: Arial, sans-serif;
-    padding: 20px;
+    padding: 16px;
   }
 </style>

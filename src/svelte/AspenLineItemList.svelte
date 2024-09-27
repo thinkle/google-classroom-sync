@@ -25,8 +25,9 @@
   
 
 </script>
-<button on:click={fetchLineItems}>Fetch items</button>
+
 {#if lineItems.length > 0}
+  <button on:click={fetchLineItems}>(Reload)</button>
   <table>
     <thead>
       <tr>
@@ -65,7 +66,7 @@
 
   <button on:click={async () => {
     lineItems = await GoogleAppsScript.fetchLineItems(course);
-  }}>Fetch Line Items</button>
+  }}>Fetch Aspen Assignments</button>
 {/if}
 
 <style>

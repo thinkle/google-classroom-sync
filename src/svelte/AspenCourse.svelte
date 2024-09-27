@@ -47,15 +47,14 @@
   <h2>{course.title}</h2>
 </div>
 
-<button on:click={testCreateLineItem}>
-  Create Test Assignment!
-</button>
-
 {#if course.sourcedId && $courseMap[course.sourcedId]}
   {@const googleId = $courseMap[course.sourcedId]}
-  <button on:click={()=>courseMap.setKey(course.sourcedId, null)}>
-    Unlink Class
-  </button>
+  <p>
+    Already connected w/ Aspen class!
+    <button on:click={()=>courseMap.setKey(course.sourcedId, null)}>
+      Unlink Class
+    </button>
+  </p>
   {#if categories.length}
   {#key googleId}
   <GoogleAssignmentMapper 

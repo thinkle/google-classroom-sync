@@ -4,8 +4,7 @@
 </script>
 
 <div>
-  <h2>Fetch Grading Period</h2>
-  (fixme)
+  
 </div>
 
 <style>
