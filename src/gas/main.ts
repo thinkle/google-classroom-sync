@@ -1,7 +1,6 @@
 export { doGet } from "./serve";
 export {
   testApiCall,
-  fetchTeachers,
   fetchTeacherByEmail,
   fetchAspenCourses,
   fetchLineItems,

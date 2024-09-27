@@ -34,23 +34,3 @@ export async function httpRequest(url, options) {
     return response;
   }
 }
-// util.ts
-
-export function getProp(key: string): string | null {
-  if (typeof PropertiesService !== "undefined") {
-    const properties = PropertiesService.getScriptProperties();
-    return properties.getProperty(key);
-  } else if (typeof localStorage !== "undefined") {
-    return localStorage.getItem(key);
-  }
-  return null;
-}
-
-export function setProp(key: string, value: string): void {
-  if (typeof PropertiesService !== "undefined") {
-    const properties = PropertiesService.getScriptProperties();
-    properties.setProperty(key, value);
-  } else if (typeof localStorage !== "undefined") {
-    localStorage.setItem(key, value);
-  }
-}
