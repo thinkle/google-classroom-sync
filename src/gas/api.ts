@@ -16,6 +16,14 @@ export function foo(s: string) {
 }
 
 import { fetchTeacherByEmail } from "./aspen";
+export { 
+  logApiCall, 
+  logGrades,
+  getAssessmentConnections, 
+  getCourseConnections,
+  getGradeLog,
+  connectAssessments,
+  connectCourses } from "./logging";
 
 export function fetchAspenTeacher () {
   let email = getActiveUserEmail();
@@ -38,3 +46,4 @@ export {
   fetchGoogleCourses,
   fetchGoogleGrades,
 } from "./googleClassroom";
+
