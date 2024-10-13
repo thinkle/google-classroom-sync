@@ -79,13 +79,28 @@
           "=>",
           result
         );
-        results = [...results, result];
+        results = [...results, {
+          grade : g,
+          result,
+      }];
+        // Now post grade to log so we don't re-post in the future...        
       } catch (e) {
         console.error("Error posting", g, e);
         let result = { error: e, grade: g };
         results = [...results, result];
       }
     }
+    const nonErrorResults = results.filter((r) => r.grade && !r.error);
+    GoogleAppsScript.logGrades(
+      googleAssignment.id,
+      nonErrorResults.map(
+        ({grade,result}) => ({
+          email : grade.studentEmail,
+          score : getGrade(grade),
+          timestamp : grade.lastGradeChangeTimestamp
+        })
+      )
+    )
     console.log("Done posting grades: ", results);
   }
 
@@ -160,9 +175,20 @@
       <ul>
         {#each readyGrades as grade}
           <li>
+            <span class="student">
             {grade.aspenStudent.givenName}
             {grade.aspenStudent.familyName}
-            {grade.assignedGrade || (useDraft && grade.draftGrade)}
+            </span>
+            <span class="grade">
+              {grade.assignedGrade || (useDraft && grade.draftGrade)}
+            </span>
+            <span class="comment">
+              {grade.comment}
+            </span>
+            <span class="updated">
+              {new Date(grade.lastGradeChangeTimestamp).toLocaleDateString()}
+              {new Date(grade.lastGradeChangeTimestamp).toLocaleTimeString()}
+            </span>
           </li>
         {/each}
       </ul>
