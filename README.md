@@ -1,3 +1,15 @@
+# Google Classroom Sync
+
+Google used to provide syncing to our SIS for free, but they put it behind a paywall, so I built it myself. This tool will handle syncing to
+the OneRoster API -- in our case, I'm using Aspen's API access to handle syncing. If you wanted to use this in your own district, you'd need
+to be the admin able to set up OneRoster API access. You'll also want to make sure you protect your API keys -- this script is designed to
+only allow teachers to modify their own classes by checking the email address of the teacher against the email address of the teacher in the
+SIS. That means that we are now making your Google login equivalent to your SIS login as far as access -- if that's not acceptable, don't use
+this script.
+
+Also, I would recommend reviewing this code yourself so you feel comfortable with the risks. I accept no responsibility or liability for any
+issues that may arise from using this code. You can see my security approach in the src/gas/aspen.ts file.
+
 # Google Apps Script + Svelte
 
 I love Google Apps Script for whipping together projects for our Google Apps School, and I love svelte development in Visual Studio, but before now, I haven't been able to  bring them together. This repo will give me a recipe for fixing that!
