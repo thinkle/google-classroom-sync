@@ -1,4 +1,5 @@
-import { httpRequest, getProp, setProp } from "./util";
+import { logApiCall, logGrades } from "./logging";
+import { httpRequest } from "./util";
 
 function aspenInterface() {
 
@@ -225,11 +226,21 @@ function aspenInterface() {
     });
 
     if (!response.ok) {
+      logApiCall({
+        method: "GET",
+        url: url,
+        response: await response.text()
+      });
       throw new Error("Failed to fetch line items: " + (await response.text()));
     }
 
     const data = await response.json();
     console.log("Line items fetched: ", data.lineItems);
+    logApiCall({
+      method : "GET",
+      url : url,
+      response : `${data.lineItems.length} line items fetched`
+    })
     return data.lineItems;
   }
 
@@ -248,9 +259,13 @@ function aspenInterface() {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-
     const data = await response.json();
     console.log("Students fetched: ", data.users);
+        logApiCall({
+          method: "GET",
+          url: url,
+          response: `${data.users.length} students fetched`
+        });
     return data.users;
   }
 
@@ -327,6 +342,11 @@ function aspenInterface() {
 
     const data = await response.json();
     console.log("Line item created: ", data.lineItem);
+    logApiCall({
+      method: "PUT",
+      url: url,
+      response: `Line item created: ${data.lineItem.title} ${data.lineItem.sourcedId}`
+    });
     return data.lineItem;
   }
 
@@ -376,10 +396,22 @@ function aspenInterface() {
     });
 
     if (!response.ok) {
+      logApiCall({
+        method: "PUT",
+        url: url,
+        response: await response.text()
+      });
       throw new Error("Failed to post result: " + (await response.text()));
     }
 
     const data = await response.json();
+    logApiCall(
+      {
+        method: "PUT",
+        url: url,
+        response: `Result posted: ${data.result.sourcedId}`
+      }
+    )
     console.log("Result posted: ", data);
     return data;
   }
@@ -401,7 +433,7 @@ function aspenInterface() {
         comment: comment,
       },
     };
-    let data = await postResult(id, resultObject);
+    let data = await postResult(id, resultObject);    
     return data;
   }
 
