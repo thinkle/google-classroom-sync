@@ -25,6 +25,7 @@
   let fetchingGrades = NOT_FETCHING;
 
   async function getGrades() {    
+    fetchingGrades = FETCHING_GOOGLE_GRADES;
     grades = await GoogleAppsScript.fetchGoogleGrades(
       googleCourseId,
       googleAssignment.id
@@ -32,7 +33,7 @@
     console.log("Grades:", grades);
     let haveLookedUpRoster = false;
     for (let g of grades) {
-      fetchingGrades = FETCHING_GOOGLE_GRADES;
+      
       // Map an "aspenStudent" property to each grade object
       // doing a look up if we need to...
       g.aspenStudent = $studentLookup[g.studentEmail];
