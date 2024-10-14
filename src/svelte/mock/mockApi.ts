@@ -310,8 +310,8 @@ export function fetchGoogleAssessments(courseId: any): GoogleAppsScript.Classroo
 }
 
 export function fetchGoogleCourses(teacherEmail: any): any[] {
-  return [{ id: "foo", title: "Course 1" },
-  { id: "bar", title: "Course 2" }]; // TODO: Replace with mock return value of type any[]  
+  return [{ id: "foo", name: "Course 1" },
+  { id: "bar", name: "Course 2" }]; // TODO: Replace with mock return value of type any[]  
 }
 
 export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
@@ -467,3 +467,48 @@ export function fetchAspenTeacher(): Promise<User> {
 }
 
 
+
+
+export function logApiCall(apiCall: any): void {
+  
+}
+
+export function logGrades(assessmentId: any, grades: any): void {
+  
+}
+
+export function getAssessmentConnections(): {} {
+  return null; // TODO: Replace with mock return value of type {}
+}
+
+export function getCourseConnections(): {} {
+  return null; // TODO: Replace with mock return value of type {}
+}
+
+export function getGradeLog(assessmentId: any): {}[] {
+  return null; // TODO: Replace with mock return value of type {}[]
+}
+
+export function connectAssessments(googleAssessment: any, aspenAssessment: any): void {
+  
+}
+
+export function connectCourses(googleCourse: any, aspenCourse: any): void {
+  
+}
+
+export function getStudentConnections(): { [key: string]: string; } {
+  return null; // TODO: Replace with mock return value of type { [key: string]: string; }
+}
+
+export function getSettings(): { assessmentLinks: { [key: string]: string; }; courseLinks: { [key: string]: string; }; studentLinks: { [key: string]: string; }; } {
+  return {
+    assessmentLinks: {},
+    courseLinks: {},
+    studentLinks: {},
+  }
+}
+
+export function connectStudents(aspenStudent: string, googleStudent: string): void {
+ return undefined; 
+}
