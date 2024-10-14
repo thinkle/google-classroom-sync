@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from 'contain-css-svelte';
   import GradeTest from './GradeTest.svelte';
 
   import { GoogleAppsScript } from "./gasApi";
@@ -39,8 +40,8 @@
 
 </script>
 
-<button on:click={testRoster}>Get students</button>
-<button on:click={testAssignments}>Get assignments</button>
+<Button on:click={testRoster}>Get students</Button>
+<Button on:click={testAssignments}>Get assignments</Button>
 {#if roster && assignments}
   Test creating an assignment
   <GradeTest {assignments} {roster}></GradeTest>
