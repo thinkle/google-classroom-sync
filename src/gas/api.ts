@@ -21,9 +21,12 @@ export {
   logGrades,
   getAssessmentConnections, 
   getCourseConnections,
+  getStudentConnections,
   getGradeLog,
+  getSettings,
   connectAssessments,
-  connectCourses } from "./logging";
+  connectCourses,
+  connectStudents } from "./logging";
 
 export function fetchAspenTeacher () {
   let email = getActiveUserEmail();
