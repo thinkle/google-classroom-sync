@@ -12,7 +12,7 @@
   let selectedGoogleAssignment = null;
 </script>
 
-<h3 class="google">Google Classroom Assignments</h3>
+<h3 class="google text-w-icon"><div class="google-icon"></div> Assignments</h3>
 {#if !selectedGoogleAssignment}
   <p>Select a Google Classroom Assignment</p>
 {/if}
@@ -27,22 +27,47 @@
         }}
       >
         <span class="title">{assignment.title}</span>
-        <span class="max-points">{assignment.maxPoints}</span>
+        
+        <span class="max-points">{assignment.maxPoints||'Ungraded'}</span>
         {#if assignment.dueDate}
-          <span class="due"
-            >{assignment.dueDate.month}/{assignment.dueDate.day}</span
-          >
+          <span class="due">
+            {#if assignment.dueDate}                          
+              {assignment.dueDate.month}/{assignment.dueDate.day}
+            {:else}
+              No due date
+            {/if}
+          </span>
         {/if}
         {#if linked}
-          <span
-            >(LINKED
-            {#if $aspenAssignments[linked]}
-              to {$aspenAssignments[linked].title}
-            {/if}
+          <div class="text-w-icon linked"
+            >(Linked to
+            <span>
+              <div class="aspen-icon"></div>
+              {#if $aspenAssignments[linked]}            
+                {$aspenAssignments[linked].title}
+              {/if}
+            </span>
             )
-          </span>
+          </div>
         {/if}
       </Button>
     </li>
   {/each}
 </MenuList>
+<style>
+  .linked {
+    font-size: small;
+  }
+  .title {
+    font-weight: bold;
+  }
+  li {
+    border-left: var(--primary-bg);
+  }
+  .max-points::after {
+    content: " pts";
+  }
+  .max-points {
+    font-size: small;
+  }
+</style>

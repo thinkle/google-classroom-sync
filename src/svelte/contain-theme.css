@@ -18,6 +18,7 @@
   --menu-item-border-right: none;
   --menu-item-border-left: none;
   --menu-shadow-distance: 4px;
+  --menu-item-justify: left;
 }
 :disabled {
   cursor: not-allowed !important;
