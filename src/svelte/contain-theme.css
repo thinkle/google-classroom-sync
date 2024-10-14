@@ -1,0 +1,26 @@
+:root {
+  --heading-bg: #114B5F;
+  --heading-color: #F2F7F3;
+  --heading-padding: 0.5em;  
+  --menu-item-bg: #f5f5f5;
+  --menu-item-fg: #222;
+  --button-shadow-distance: 1px;
+  --secondary-bg: #114B5F;
+  --secondary-fg: #F2F7F3;
+  --container-bg: #F2F7F3;
+  --container-fg: #114B5F;
+  --primary-bg: #FF9F1C;
+  --tab-bar-border-bottom: 1px solid #FF9F1C;
+  --primary-fg: #F2F7F3;
+  --secondary-bg: #ffffff;  
+  --secondary-fg: #112228;
+  --menu-item-border: none;
+  --menu-item-border-right: none;
+  --menu-item-border-left: none;
+  --menu-shadow-distance: 4px;
+}
+:disabled {
+  cursor: not-allowed !important;
+  transform: none;
+  filter: grayscale(50%) !important;
+}
