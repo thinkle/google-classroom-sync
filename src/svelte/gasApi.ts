@@ -37,6 +37,96 @@ export const GoogleAppsScript = {
       });
     },
 
+     logApiCall(apiCall: { method: string; url: string; response: string; }): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .logApiCall(apiCall);
+      });
+    },
+
+     logGrades(assessmentId: string, grades: { email: string; score: number; timestamp: string; }[]): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .logGrades(assessmentId, grades);
+      });
+    },
+
+     getAssessmentConnections(): Promise<{ [key: string]: string; }> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: { [key: string]: string; }) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getAssessmentConnections();
+      });
+    },
+
+     getCourseConnections(): Promise<{ [key: string]: string; }> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: { [key: string]: string; }) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getCourseConnections();
+      });
+    },
+
+     getStudentConnections(): Promise<{ [key: string]: string; }> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: { [key: string]: string; }) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getStudentConnections();
+      });
+    },
+
+     getGradeLog(assessmentId: string): Promise<{ timestamp: string; email: string; score: string; }[]> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: { timestamp: string; email: string; score: string; }[]) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getGradeLog(assessmentId);
+      });
+    },
+
+     getSettings(): Promise<{ assessmentLinks: { [key: string]: string; }; courseLinks: { [key: string]: string; }; studentLinks: { [key: string]: string; }; }> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: { assessmentLinks: { [key: string]: string; }; courseLinks: { [key: string]: string; }; studentLinks: { [key: string]: string; }; }) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getSettings();
+      });
+    },
+
+     connectAssessments(aspenAssessment: string, googleAssessment: string): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .connectAssessments(aspenAssessment, googleAssessment);
+      });
+    },
+
+     connectCourses(aspenCourse: string, googleCourse: string): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .connectCourses(aspenCourse, googleCourse);
+      });
+    },
+
+     connectStudents(aspenStudent: string, googleStudent: string): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .connectStudents(aspenStudent, googleStudent);
+      });
+    },
+
      fetchAspenCourses(teacher: User): Promise<Promise<Course[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
