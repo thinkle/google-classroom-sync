@@ -8,6 +8,16 @@ declare namespace google.script {
   testMe(number: number): void;
   foo(s: string): void;
   fetchAspenTeacher(): void;
+  logApiCall(apiCall: { method: string; url: string; response: string; }): void;
+  logGrades(assessmentId: string, grades: { email: string; score: number; timestamp: string; }[]): void;
+  getAssessmentConnections(): void;
+  getCourseConnections(): void;
+  getStudentConnections(): void;
+  getGradeLog(assessmentId: string): void;
+  getSettings(): void;
+  connectAssessments(aspenAssessment: string, googleAssessment: string): void;
+  connectCourses(aspenCourse: string, googleCourse: string): void;
+  connectStudents(aspenStudent: string, googleStudent: string): void;
   fetchAspenCourses(teacher: User): void;
   fetchLineItems(course: Course): void;
   fetchCategories(course: any): void;
