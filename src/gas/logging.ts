@@ -11,12 +11,11 @@ function ConfigInterface() {
     if (configFolderId) {
       const folder = DriveApp.getFolderById(configFolderId);
       let shortcut = DriveApp.createShortcut(doc.getId());
-      shortcut.moveTo(folder); 
+      shortcut.moveTo(folder);
     }
   }
 
   function createConfigSpreadsheet() {
-    
     const userEmail = Session.getActiveUser().getEmail();
     const sheetName = `Google Classroom Sync Config & Log - ${userEmail}`;
     const sheet = SpreadsheetApp.create(sheetName);
@@ -28,7 +27,6 @@ function ConfigInterface() {
   }
 
   function getConfigSpreadsheet() {
-
     const cachedId = userProperties.getProperty("CONFIG_SHEET_ID");
     if (cachedId) {
       try {
@@ -49,14 +47,14 @@ function ConfigInterface() {
     while (files.hasNext()) {
       const file = files.next();
       try {
-        let ss =  SpreadsheetApp.openById(file.getId());
+        let ss = SpreadsheetApp.openById(file.getId());
         userProperties.setProperty("CONFIG_SHEET_ID", file.getId());
         return ss;
       } catch (err) {
-        console.info('Unable to load sheet with ID ', file.getId());
-        console.info('It may be a shortcut?');
+        console.info("Unable to load sheet with ID ", file.getId());
+        console.info("It may be a shortcut?");
       }
-    } 
+    }
     let ss = createConfigSpreadsheet();
     userProperties.setProperty("CONFIG_SHEET_ID", ss.getId());
     return ss;
@@ -164,48 +162,74 @@ function ConfigInterface() {
     };
   }
 
-  function connectCourses(googleCourse : string, aspenCourse : string) {
+  function connectCourses(aspenCourse: string, googleCourse: string) {
     const config = getConfig("CourseConnections");
-    config.writeValue(googleCourse, aspenCourse);
+    config.writeValue(aspenCourse, googleCourse);
   }
 
-  function connectAssessments(googleAssessment : string, aspenAssessment : string) {
+  function connectAssessments(
+    aspenAssessment: string,
+    googleAssessment: string,    
+  ) {
     const config = getConfig("AssessmentConnections");
-    config.writeValue(googleAssessment, aspenAssessment);
+    config.writeValue(aspenAssessment, googleAssessment);
   }
 
-  function getCourseConnections() : {[key: string]: string} {
+  function connectStudents(aspenStudent: string, googleStudent: string) {
+    const config = getConfig("StudentLinks");
+    config.writeValue(aspenStudent, googleStudent);
+  }
+
+  function getCourseConnections(): { [key: string]: string } {
     const config = getConfig("CourseConnections");
     return config.readAllValues();
   }
 
-  function getAssessmentConnections() : {[key: string]: string} {
+  function getAssessmentConnections(): { [key: string]: string } {
     const config = getConfig("AssessmentConnections");
     return config.readAllValues();
   }
 
-  function logGrades(assessmentId : string, grades : {email: string, score: number, timestamp : any}[]) {
-    const columns = ["timestamp", "email", "score"];
-    const logSheet = getLogSheet(`GradesLog_${assessmentId}`, columns);    
-
-    logSheet.appendEntries(entries);
+  function getStudentLinks(): { [key: string]: string } {
+    const config = getConfig("StudentLinks");
+    return config.readAllValues();
   }
 
-  function getGradeLog(assessmentId : string) : {timestamp: string, email: string, score: string}[] {
+  function logGrades(
+    assessmentId: string,
+    grades: { email: string; score: number; timestamp: string }[]
+  ) {
     const columns = ["timestamp", "email", "score"];
     const logSheet = getLogSheet(`GradesLog_${assessmentId}`, columns);
-    return logSheet.readEntries() as {timestamp : string, email: string, score: string}[];
+
+    logSheet.appendEntries(grades);
   }
 
-  function logApiCall(apiCall : {method: string, url: string, response: string}) {
-    const columns = ["Timestamp", "Method", "URL", "Response"];
+  function getGradeLog(
+    assessmentId: string
+  ): { timestamp: string; email: string; score: string }[] {
+    const columns = ["timestamp", "email", "score"];
+    const logSheet = getLogSheet(`GradesLog_${assessmentId}`, columns);
+    return logSheet.readEntries() as {
+      timestamp: string;
+      email: string;
+      score: string;
+    }[];
+  }
+
+  function logApiCall(apiCall: {
+    method: string;
+    url: string;
+    response: string;
+  }) {
+    const columns = ["timestamp", "method", "url", "response"];
     const logSheet = getLogSheet("ApiCallsLog", columns);
 
     const entry = {
-      Timestamp: new Date().toISOString(),
-      Method: apiCall.method,
-      URL: apiCall.url,
-      Response: apiCall.response,
+      timestamp: new Date().toISOString(),
+      method: apiCall.method,
+      url: apiCall.url,
+      response: apiCall.response,
     };
 
     logSheet.appendEntry(entry);
@@ -216,10 +240,12 @@ function ConfigInterface() {
   }
 
   return {
-    connectCourses,
     connectAssessments,
-    getCourseConnections,
+    connectCourses,
+    connectStudents,
     getAssessmentConnections,
+    getCourseConnections,
+    getStudentLinks,
     getConfigUrl,
     logGrades,
     getGradeLog,
@@ -228,42 +254,122 @@ function ConfigInterface() {
 }
 
 export function getConfigUrl() {
+  if (!isGoogleAppsScript()) {
+    console.log("getConfigUrl called with no Google Apps Script environment");
+    return;
+  }
   return ConfigInterface().getConfigUrl();
 }
 
-export function connectCourses(googleCourse : string, aspenCourse : string) {
-  ConfigInterface().connectCourses(googleCourse, aspenCourse);
+export function connectCourses(aspenCourse: string, googleCourse: string) {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "connectCourses called with arguments:",      
+      aspenCourse,
+      googleCourse
+    );
+    return;
+  }
+  ConfigInterface().connectCourses(aspenCourse,googleCourse);
 }
 
-export function connectAssessments(googleAssessment : string, aspenAssessment : string) {
-  ConfigInterface().connectAssessments(googleAssessment, aspenAssessment);
+export function connectAssessments(
+  aspenAssessment: string,
+  googleAssessment: string  
+) {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "connectAssessments called with arguments:",      
+      aspenAssessment,
+      googleAssessment
+    );
+    return;
+  }
+  ConfigInterface().connectAssessments(aspenAssessment, googleAssessment);
 }
 
-export function getCourseConnections() : {[key: string]: string} {
-  return ConfigInterface().getCourseConnections();
+export function connectStudents(aspenStudent: string, googleStudent: string) {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "connectStudents called with arguments:",      
+      aspenStudent,
+      googleStudent
+    );
+    return;
+  }
+  ConfigInterface().connectStudents(aspenStudent, googleStudent);
 }
 
-export function getAssessmentConnections() : {[key: string]: string} {
+export function getAssessmentConnections(): { [key: string]: string } {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "getAssessmentConnections called with no Google Apps Script environment"
+    );
+    return {};
+  }
   return ConfigInterface().getAssessmentConnections();
 }
 
-export function logGrades(assessmentId : string, grades : {studentEmail: string, score: number, Timestamp : string}[]) {
+export function getCourseConnections(): { [key: string]: string } {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "getCourseConnections called with no Google Apps Script environment"
+    );
+    return {};
+  }
+  return ConfigInterface().getCourseConnections();
+}
+
+export function getStudentConnections (): { [key: string]: string } {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "getStudentConnections called with no Google Apps Script environment"
+    );
+    return {};
+  }
+  return ConfigInterface().getStudentLinks();
+}
+
+function isGoogleAppsScript() {
+  return typeof Session !== "undefined";
+}
+
+export function logGrades(
+  assessmentId: string,
+  grades: { email: string; score: number; timestamp: string }[]
+) {
+  if (!isGoogleAppsScript()) {
+    console.log("logGrades called with arguments:", assessmentId, grades);
+    return;
+  }
   ConfigInterface().logGrades(assessmentId, grades);
 }
 
-export function getGradeLog(assessmentId : string) : {Timestamp: string, StudentEmail: string, Score: string}[] {
+export function getGradeLog(
+  assessmentId: string
+): { timestamp: string; email: string; score: string }[] {
+  if (!isGoogleAppsScript()) {
+    console.log("getGradeLog called with arguments:", assessmentId);
+    return [];
+  }
   return ConfigInterface().getGradeLog(assessmentId);
 }
 
-export function logApiCall(apiCall : {method: string, url: string, response: string}) {
+export function logApiCall(apiCall: {
+  method: string;
+  url: string;
+  response: string;
+}) {
+  if (!isGoogleAppsScript()) {
+    console.log("logApiCall called with arguments:", apiCall);
+    return;
+  }
   ConfigInterface().logApiCall(apiCall);
 }
-
-export function testConfigInterface() {
+export function getSettings () {
   const config = ConfigInterface();
-  config.connectAssessments('test-google','test-aspen');
-  config.connectCourses('test-google-course','test-aspen-course');
-  config.logApiCall({method: 'GET', url: 'http://example.com', response: 'OK'});
-  config.logGrades('test-assessment', [{studentEmail: 'foo@bar.com', score: 100}]); 
-  console.log('See: '+config.getConfigUrl());
+  let assessmentLinks = config.getAssessmentConnections();
+  let courseLinks = config.getCourseConnections();
+  let studentLinks = config.getStudentLinks();
+  return { assessmentLinks, courseLinks, studentLinks };
 }
