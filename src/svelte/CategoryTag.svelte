@@ -16,9 +16,5 @@
 {/if}
 
 <style>
-  span {
-    background-color: var(--secondary-bg, blue);
-    color: var(--secondary-fg, white);
-    padding: 4px;
-  }
+  
 </style>

@@ -7,52 +7,23 @@
   import { GoogleAppsScript } from "./gasApi";
   import { aspenAssignments, assignmentMap } from "./store";
   import { onMount } from "svelte";
+  import { Button, FormItem, TabBar, TabItem } from "contain-css-svelte";
 
-  export let googleCourseId;
   export let aspenCourse;
-  export let categories;
-  let googleCourse;
-  $: if (googleCourseId && !googleCourse) {
-    fetchCourse();
-  }
-  let fetchingAssignments = false;
-  onMount(async () => {
-    if (googleCourseId && !googleCourse) {
-      await fetchCourse();
-    };
-    await fetchAssignments();
-  });
+  export let googleAssignment;
+  export let googleCourse;
+  export let categories = [];
+  export let onSelect = (aspenAssignment) => {
+    console.log("You should provide an onSelect callback");
+    console.log("Selected:", aspenAssignment);
+  };
 
-  let assignments = [];
-
-  async function fetchCourse() {
-    let courses = await GoogleAppsScript.fetchGoogleCourses();
-    googleCourse = courses.find((course) => course.id == googleCourseId);
-  }
-
-  async function fetchAssignments() {
-    fetchingAssignments = true;
-    try {
-      assignments = await GoogleAppsScript.fetchGoogleAssessments(
-        googleCourse.id
-      );
-      for (let a of assignments) {
-        $googleAssignments[a.id] = a;
-      }
-    } catch (err) {
-      console.error(err);
-      window.alert('Error fetching assignments: ' + err);
-    }
-    fetchingAssignments = false;
-  }
-
-  let selectedGoogleAssignment = null;
   let selectedAspenAssignment = null;
   let mode: "LINK" | "CREATE" = "CREATE";
   let newAspenLineItem = {};
   let existingAspenLineItem = null;
 
-  $: if (selectedGoogleAssignment && mode == "CREATE") {
+  $: if (googleAssignment && mode == "CREATE") {
     populateLineItem();
   }
 
@@ -66,22 +37,27 @@
   }
 
   function populateLineItem() {
-    newAspenLineItem = {
-      dueDate: formatDate(selectedGoogleAssignment.dueDate),
-      assignDate: selectedGoogleAssignment.creationTime.split("T")[0],
-      title: selectedGoogleAssignment.title,
-      description: `${selectedGoogleAssignment.description}\n${selectedGoogleAssignment.alternateLink}\n`,
-      resultValueMax: selectedGoogleAssignment.maxPoints || 4,
-      resultValueMin: 0,
-      class: {
-        sourcedId: aspenCourse.sourcedId,
-        href: aspenCourse.course.href,
-      },
-    };
+    try {
+      newAspenLineItem = {
+        dueDate: formatDate(googleAssignment.dueDate),
+        assignDate: googleAssignment.creationTime.split("T")[0],
+        title: googleAssignment.title,
+        description: `${googleAssignment.description}\n${googleAssignment.alternateLink}\n`,
+        resultValueMax: googleAssignment.maxPoints || 4,
+        resultValueMin: 0,
+        class: {
+          sourcedId: aspenCourse.sourcedId,
+          href: aspenCourse.course.href,
+        },
+      };
+    } catch (e) {
+      console.error("Error populating line item", e);
+      console.log("We were using assignment: ", googleAssignment);
+    }
   }
 
   function getLineItemId() {
-    return googleCourse.id + "-" + selectedGoogleAssignment.id;
+    return googleCourse.id + "-" + googleAssignment.id;
   }
 
   async function createLineItem() {
@@ -91,6 +67,20 @@
     let result = await GoogleAppsScript.createLineItem(id, newAspenLineItem);
     console.log("Created item!", result);
     await refreshLineItems();
+    console.log("Help me I have to find my line item!");
+    console.log("I got a result:", result);
+    console.log("And I have the items", $aspenAssignments);
+    let item = $aspenAssignments[result.sourcedId];
+    if (item) {
+      onSelect($aspenAssignments[result.sourcedId]);
+    } else {
+      console.error(
+        "Could not find item in list of assignments",
+        id,
+        result.sourcedId,
+        $aspenAssignments
+      );
+    }
   }
 
   function updateCategory(theCategory) {
@@ -104,237 +94,88 @@
     }
   }
 
-  async function refreshLineItems () {
+  async function refreshLineItems() {
     let lineItems = await GoogleAppsScript.fetchLineItems(aspenCourse);
     for (let li of lineItems) {
       $aspenAssignments[li.sourcedId] = li;
     }
+    if ($assignmentMap[googleAssignment.id]) {
+      let selectedAspenAssignmentId = $assignmentMap[googleAssignment.id];
+      selectedAspenAssignment = $aspenAssignments[selectedAspenAssignmentId];
+      if (selectedAspenAssignment) {
+        onSelect(selectedAspenAssignment);
+      }
+    }
   }
 
+  
+
   function makeLink() {
-    if (!selectedGoogleAssignment) {
-      window.alert(
-        "Weird we tried to make a link but there is no selected google assignment"
-      );
-      return;
-    }
-    if (!selectedAspenAssignment) {
-      window.alert(
-        "Weird we tried to make a link but there is no selected aspen assignment"
-      );
-      return;
-    }
-    let aspenId = selectedAspenAssignment.sourcedId;
-    let googleId = selectedGoogleAssignment.id;
-    $assignmentMap[aspenId] = googleId;
-    $assignmentMap[googleId] = aspenId;
-  }
-  async function getGrades(assignment) {
-    let grades = await GoogleAppsScript.fetchGoogleGrades(
-      googleCourseId,
-      assignment.id
-    );
-    console.log("Grades:", grades);
+    onSelect(selectedAspenAssignment);
   }
 </script>
 
-<h2>Assignments for {aspenCourse.title}</h2>
-<h3>With {categories.length} categories</h3>
-<div class="side-by-side">
-  <div class="column google-assignments">
-    <h3 class="google">Google Classroom Assignments</h3>
-    {#if !selectedGoogleAssignment}
-      <p>First select a Google Assignment</p>
-    {/if}
-    {#if googleCourse}
-      {#if !fetchingAssignments}
-        <button on:click={fetchAssignments}>
-          {#if assignments.length > 0}
-            Reload Google Assignments
-          {:else}
-            Fetch Google Assignments
-          {/if}          
-        </button>
-      {:else}
-        Loading google classroom assignments...
-      {/if}
-      {#each assignments as assignment}
-        {@const linked = $assignmentMap[assignment.id]}
-        <div
-          class="google-assignment"
-          class:selected={selectedGoogleAssignment == assignment}
-        >
-          <input
-            on:click={() => {
-              if (selectedGoogleAssignment != assignment) {
-                selectedGoogleAssignment = assignment;
-              } else {
-                selectedGoogleAssignment = null;
-              }
-            }}
-            type="checkbox"
-            checked={selectedGoogleAssignment == assignment}
-          />
-          <span class="title">{assignment.title}</span>
-          <span class="max-points">{assignment.maxPoints}</span>
-          {#if assignment.dueDate}
-            <span class="due"
-              >{assignment.dueDate.month}/{assignment.dueDate.day}</span
-            >
-          {/if}
-          {#if linked}
-            <span
-              >(LINKED
-              {#if $aspenAssignments[linked]}
-                to {$aspenAssignments[linked].title}
-              {/if}
-              )
-            </span>
-          {/if}        
-        </div>
-      {/each}
-    {/if}
-  </div>
-  <div class="column aspen-assignments">
-    <h3>Aspen Assignments</h3>
-    {#if selectedGoogleAssignment && $assignmentMap[selectedGoogleAssignment.id]}
-      {@const linked = $assignmentMap[selectedGoogleAssignment.id]}
-      {@const aspenAssignment = $aspenAssignments[linked]}
-      <p>
-        This Google Assignment is already linked to
-        {#if aspenAssignment}
-          {aspenAssignment.title}
-        {:else}
-          an Aspen Assignment (id: {linked})
-        {/if}
-        <button 
-        on:click={
-          ()=>{
-            $assignmentMap[selectedGoogleAssignment.id] = null;
-            $assignmentMap[linked] = null;
-          }
-        }
-        >(un-link)</button>
-      </p>   
-        {#if aspenAssignment}          
-          <div>
-              <GradePoster
-                {googleCourseId}
-                {aspenCourse}
-                aspenAssignment={aspenAssignment}
-                googleAssignment={selectedGoogleAssignment}
-              ></GradePoster>
-          </div>      
-        {:else}
-        <button on:click={refreshLineItems}>
-          Reload Aspen Data
-        </button>
-        {/if}
-    {:else}
-      <nav>
-        <button
-          class="tab"
-          class:active={mode == "LINK"}
-          on:click={() => (mode = "LINK")}>Link an existing assignment</button
-        >
-        <button
-          class="tab"
-          class:active={mode == "CREATE"}
-          on:click={() => (mode = "CREATE")}>Create a new assignment</button
-        >
-      </nav>
+<h2 class="text-w-icon">Select <span><div class="aspen-icon"></div>Aspen Assignment</span> for 
+  <span><div class="google-icon"></div> {googleAssignment.title}</span></h2>
 
-      {#if mode == "LINK"}
-        {#if selectedAspenAssignment}
-          {#if selectedGoogleAssignment}
-            <p>
-              Linking {selectedGoogleAssignment.title} to {selectedAspenAssignment.title}
-            </p>
-            <button on:click={() => (selectedAspenAssignment = null)}
-              >&times;</button
-            >
-            <button class="primary" on:click={makeLink}>Link</button>
-          {:else}
-            <p>
-              Select a Google Assignment to link to {selectedAspenAssignment.title}
-            </p>
-          {/if}
-        {:else}
-          <p>
-            Select an Aspen Assignment to link to
-            {#if selectedGoogleAssignment}
-              {selectedGoogleAssignment.title}
-            {/if}
-          </p>
-          <AspenLineItemList
-            course={aspenCourse}
-            {categories}
-            onSelected={(selected) => (selectedAspenAssignment = selected)}
-          ></AspenLineItemList>
-        {/if}
-      {/if}
-      {#if selectedGoogleAssignment}
-        {#if mode == "CREATE"}
-          <div class="assignment-creator">
-            <label>
-              Title: <input type="text" bind:value={newAspenLineItem.title} />
-            </label>
-            <label>
-              Description: <textarea bind:value={newAspenLineItem.description}
-              ></textarea>
-            </label>
-            <label>
-              Assigned Date: <input
-                type="date"
-                bind:value={newAspenLineItem.assignDate}
-              />
-            </label>
-            <label>
-              Due Date: <input
-                type="date"
-                bind:value={newAspenLineItem.dueDate}
-              />
-            </label>
-            <label>
-              Max Score: <input
-                type="number"
-                bind:value={newAspenLineItem.resultValueMax}
-              />
-            </label>
-            <label>
-              {#if categories.length}
-                Category
-                <AspenCategorySelector
-                  {categories}
-                  selected={categories.find(
-                    (cat) => cat.sourcedId == newAspenLineItem.category?.sourcedId
-                  )}
-                  onCategorySelected={updateCategory}
-                ></AspenCategorySelector>
-              {/if}
-            </label>
-            <button on:click={createLineItem}>Create Assignment</button>
-          </div>
-        {/if}
-      {/if}    
+<TabBar>
+  <TabItem active={mode == "LINK"} on:click={() => (mode = "LINK")}
+    >Link an existing assignment
+  </TabItem>
+  <TabItem active={mode == "CREATE"} on:click={() => (mode = "CREATE")}
+    >Create a new assignment</TabItem
+  >
+</TabBar>
+
+{#if mode == "LINK"}
+  <p>
+    Select an Aspen Assignment to link to
+    {#if googleAssignment}
+      {googleAssignment.title}
     {/if}
+  </p>
+  <AspenLineItemList course={aspenCourse} {categories} onSelected={onSelect}
+  ></AspenLineItemList>
+{/if}
+{#if mode == "CREATE"}
+  <div class="assignment-creator">
+    <FormItem globalInputStyles>
+      <span slot="label"> Title:</span>
+      <input type="text" bind:value={newAspenLineItem.title} />
+    </FormItem>
+
+    <FormItem globalInputStyles>
+      <span slot="label"> Description:</span>
+      <textarea bind:value={newAspenLineItem.description}></textarea>
+    </FormItem>
+
+    <FormItem globalInputStyles>
+      <span slot="label"> Assigned Date:</span>
+      <input type="date" bind:value={newAspenLineItem.assignDate} />
+    </FormItem>
+    <FormItem globalInputStyles>
+      <span slot="label"> Due Date:</span>
+      <input type="date" bind:value={newAspenLineItem.dueDate} />
+    </FormItem>
+    <FormItem globalInputStyles>
+      <span slot="label"> Max Score:</span>
+      <input type="number" bind:value={newAspenLineItem.resultValueMax} />
+    </FormItem>
+    <FormItem globalInputStyles>
+      <span slot="label"> Category:</span>
+      <AspenCategorySelector
+        {categories}
+        selected={categories.find(
+          (cat) => cat.sourcedId == newAspenLineItem.category?.sourcedId
+        )}
+        onCategorySelected={updateCategory}
+      ></AspenCategorySelector>
+    </FormItem>
+    <FormItem>
+      <Button on:click={createLineItem} primary>Create Assignment</Button>
+    </FormItem>
   </div>
-</div>
+{/if}
 
 <style>
-  .side-by-side {
-    display: flex;
-    justify-content: space-between;
-  }
-  .selected {
-    border: 2px solid red;
-    font-weight: bold;
-  }
-  .active {
-    border: 3px solid blue;
-  }
-  .google-assignment {
-    padding: 8px;
-    border-bottom: 1px solid grey;
-  }
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { Course } from "../gas/types";
+  import { MenuList,Button } from "contain-css-svelte";
 
   export let courses: Course[];
   const dispatch = createEventDispatcher();
@@ -9,16 +10,17 @@
     dispatch("select", { selectedClass });
   }
 </script>
-
-<ul>
+<MenuList>
   {#each courses as course}
-    <li on:click={() => selectClass(course)}>
+    <li>
+      <button on:click={() => selectClass(course)}>      
       {course.title} -
       {#if course.subjects}
         {course.subjects.join(", ")}{/if}
+        </button>
     </li>
   {/each}
-</ul>
+</MenuList>
 
 <style>
   li {

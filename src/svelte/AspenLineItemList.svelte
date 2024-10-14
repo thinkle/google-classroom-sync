@@ -1,86 +1,85 @@
 <script lang="ts">
-	
-  
-  import CategoryTag from './CategoryTag.svelte';
-  import { GoogleAppsScript } from './gasApi';
-  import { aspenAssignments, assignmentMap, googleAssignments, lineItemStore } from './store';
-  export let course;    
-  let lineItems : LineItem = [];
+  import { MenuList } from "contain-css-svelte";
+  import { Button } from "contain-css-svelte";
+
+  import CategoryTag from "./CategoryTag.svelte";
+  import { GoogleAppsScript } from "./gasApi";
+  import {
+    aspenAssignments,
+    assignmentMap,
+    googleAssignments,
+    lineItemStore,
+  } from "./store";
+  export let course;
+  let lineItems: LineItem = $lineItemStore[course.sourcedId] || [];
+  console.log("AspenLineItem list created with course", course);
+  console.log("initial items from store:", $lineItemStore[course.sourcedId]);
   export let categories;
   $: lineItems = $lineItemStore[course.sourcedId] || [];
-  export let onSelected = (
-    lineItem: LineItem
-  ) => {
+  export let onSelected = (lineItem: LineItem) => {
     console.log("Fix me! User selected:", JSON.stringify(lineItem));
-  };  
+  };
 
-  async function fetchLineItems () {
+  async function fetchLineItems() {
     lineItems = await GoogleAppsScript.fetchLineItems(course);
     $lineItemStore[course.sourcedId] = lineItems;
     for (let li of lineItems) {
       $aspenAssignments[li.sourcedId] = li;
     }
+    console.log("Manually updated:", lineItems);
+    console.log("Stores are: lineItemStore", $lineItemStore);
+    console.log("And $aspenAssignments:", $aspenAssignments);
   }
-  
-  
-
 </script>
 
 {#if lineItems.length > 0}
-  <button on:click={fetchLineItems}>(Reload)</button>
-  <table>
-    <thead>
-      <tr>
-        <th colspan="3">
-          Aspen Assignments
-        </th>
-      </tr>
-    </thead>
-    <tbody>
+  <Button on:click={fetchLineItems}>(Reload)</Button>
+  <MenuList>
     {#each lineItems as item}
-      <tr
-        on:click={() => onSelected(item)}
-        style="cursor: pointer;"
-      >
-        <td class="title">{item.title}</td> 
-        <td class="due">Due: {new Date(item.dueDate).toLocaleDateString(
-          { weekday: 'short', month: 'numeric', day: 'numeric' })
-          .replace(/\/\d{4}$/, '')}</td>
-        <td><CategoryTag lineItem={item} {categories}></CategoryTag></td>
-        <td>
-          {#if item.sourcedId in $assignmentMap}
-            {@const googleId = $assignmentMap[item.sourcedId]}
-            {@const googleAssignment = $googleAssignments[googleId]}
-            {#if googleAssignment}
-              <span>Linked to {googleAssignment.title}</span>
-            {:else}
-              <span>Linked to google assignment {googleId}</span>
+    <li>
+      <button on:click={() => onSelected(item)} style="cursor: pointer;">
+        <div class="two-rows">
+        <div class="title">{item.title}</div>
+        <div class="details">
+          <span class="due"
+            >Due: {new Date(item.dueDate)
+              .toLocaleDateString({
+                weekday: "short",
+                month: "numeric",
+                day: "numeric",
+              })
+              .replace(/\/\d{4}$/, "")}</span
+          >
+          <span><CategoryTag lineItem={item} {categories}></CategoryTag></span>
+          <span>
+            {#if item.sourcedId in $assignmentMap}
+              {@const googleId = $assignmentMap[item.sourcedId]}
+              {@const googleAssignment = $googleAssignments[googleId]}
+              {#if googleAssignment}
+                <span>Linked to {googleAssignment.title}</span>
+              {:else}
+                <span>Linked to google assignment {googleId}</span>
+              {/if}
             {/if}
-          {/if}
-        </td>
-      </tr>
+          </span>
+        </div>
+        </div>
+      </button
+      >
+    </li>
     {/each}
-    </tbody>
-  </table>
+  </MenuList>
 {:else}
-
-  <button on:click={async () => {
-    lineItems = await GoogleAppsScript.fetchLineItems(course);
-  }}>Fetch Aspen Assignments</button>
+  <Button on:click={fetchLineItems} primary>Fetch Aspen Assignments</Button>
 {/if}
 
 <style>
-  th {
-    background-color: var(--secondary-bg, grey);
-    color: var(--secondary-fg, white);
+  .two-rows {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    width: 100%;
   }
-  .title {
-    font-weight: bold;
-  }
-  .due {
-    font-weight: italic;
-  }
-  td {
-    padding: 8px;
+  .details {
+    font-size: small;
   }
 </style>

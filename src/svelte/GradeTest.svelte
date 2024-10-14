@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from "contain-css-svelte";
   import { GoogleAppsScript } from "./gasApi";
   export let assignments;
   export let roster;
@@ -20,7 +21,7 @@
 
 </script>
 
-<button on:click={postGrade}>Post grade</button>
+<Button on:click={postGrade}>Post grade</Button>
 {#if result}
   <div>Result: {JSON.stringify(result)}</div>
 {/if}

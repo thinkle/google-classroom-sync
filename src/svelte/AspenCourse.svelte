@@ -2,10 +2,11 @@
 	import { courseMap } from './store.ts';
   import type { Course } from "../gas/types";
   export let course : Course;
-  
+
   import { GoogleAppsScript } from "./gasApi";
   import GoogleCourseLinker from './GoogleCourseLinker.svelte';
   import GoogleAssignmentMapper from './GoogleAssignmentMapper.svelte';
+  import { Button } from 'contain-css-svelte';
 
 
   let categories = [];
@@ -13,6 +14,10 @@
   async function getCategories (course)  {
     console.log('Fetching categories...');
     categories = await GoogleAppsScript.fetchCategories(course);
+    if (!Array.isArray(categories)) {
+      console.error('No categories found');
+      categories = [];
+    }
     console.log("Categories are: ", categories);
   }
 
@@ -51,9 +56,9 @@
   {@const googleId = $courseMap[course.sourcedId]}
   <p>
     Already connected w/ Aspen class!
-    <button on:click={()=>courseMap.setKey(course.sourcedId, null)}>
+    <Button on:click={()=>courseMap.setKey(course.sourcedId, null)}>
       Unlink Class
-    </button>
+    </Button>
   </p>
   {#if categories.length}
   {#key googleId}

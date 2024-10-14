@@ -1,26 +1,28 @@
 <script>
-  import { GoogleAppsScript } from "./gasApi";
+  import { Button, MenuList } from "contain-css-svelte";  
+   import { GoogleAppsScript } from "./gasApi";
   export let aspenCourse;
   import { courseMap } from "./store";
   let courses = [];
   async function loadCourses () {
-    courses = await GoogleAppsScript.fetchGoogleCourses();    
+    console.log('Load courses...')
+    courses = await GoogleAppsScript.fetchGoogleCourses(); 
+    console.log('Got courses',courses);
   }
 
 </script>
 
-<button on:click={loadCourses}>
+<Button on:click={loadCourses}>
   (Re)load courses...
-</button>
-<ul>
+</Button>
+<h2>Link a Google Course to {aspenCourse.title}</h2>
+<MenuList>
   {#each courses as course}
     <li>      
-      <span>{course.name}</span>
-      <button on:click={() => courseMap.setKey(aspenCourse.sourcedId, course.id)}>
-        Link!</button>
+      <Button on:click={() => courseMap.setKey(aspenCourse.sourcedId, course.id)}>{course.name}</Button>      
     </li>
   {/each}
-</ul>
+</MenuList>
 
 <style>
 li {
