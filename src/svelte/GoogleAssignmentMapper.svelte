@@ -1,4 +1,6 @@
 <script lang="ts">
+  import AspenErrorSummarizer from './AspenErrorSummarizer.svelte';
+
   import GradePoster from "./GradePoster.svelte";
 
   import { googleAssignments } from "./store";
@@ -7,12 +9,14 @@
   import { GoogleAppsScript } from "./gasApi";
   import { aspenAssignments, assignmentMap } from "./store";
   import { onMount } from "svelte";
-  import { Button, FormItem, TabBar, TabItem } from "contain-css-svelte";
+  import { Button, Dialog, FormItem, TabBar, TabItem } from "contain-css-svelte";
 
   export let aspenCourse;
   export let googleAssignment;
   export let googleCourse;
   export let categories = [];
+  let error = null;
+
   export let onSelect = (aspenAssignment) => {
     console.log("You should provide an onSelect callback");
     console.log("Selected:", aspenAssignment);
@@ -38,11 +42,12 @@
 
   function populateLineItem() {
     try {
+      console.log('Creating line item from',googleAssignment);
       newAspenLineItem = {
         dueDate: formatDate(googleAssignment.dueDate),
         assignDate: googleAssignment.creationTime.split("T")[0],
         title: googleAssignment.title,
-        description: `${googleAssignment.description}\n${googleAssignment.alternateLink}\n`,
+        description: `${googleAssignment.description||''}\n${googleAssignment.alternateLink||''}\n`,
         resultValueMax: googleAssignment.maxPoints || 4,
         resultValueMin: 0,
         class: {
@@ -50,6 +55,7 @@
           href: aspenCourse.course.href,
         },
       };
+      console.log("Populated line item", newAspenLineItem);
     } catch (e) {
       console.error("Error populating line item", e);
       console.log("We were using assignment: ", googleAssignment);
@@ -64,7 +70,13 @@
     let id = getLineItemId();
     console.log("Creating item with id: ", id);
     console.log("Item is: ", newAspenLineItem);
-    let result = await GoogleAppsScript.createLineItem(id, newAspenLineItem);
+    try {
+      var result = await GoogleAppsScript.createLineItem(id, newAspenLineItem);
+    } catch (e) {
+      console.error("Error creating item", e);
+      error = e.message || e;
+      return;
+    }
     console.log("Created item!", result);
     await refreshLineItems();
     console.log("Help me I have to find my line item!");
@@ -176,6 +188,13 @@
     </FormItem>
   </div>
 {/if}
-
+<Dialog
+  modal={true}
+  onClose={() => (error = null)}
+  open={error}
+  >    
+  <AspenErrorSummarizer {error}></AspenErrorSummarizer>    
+  <Button on:click={() => (error = null)} primary>OK</Button>
+</Dialog>
 <style>
 </style>
