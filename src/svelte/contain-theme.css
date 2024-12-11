@@ -19,9 +19,18 @@
   --menu-item-border-left: none;
   --menu-shadow-distance: 4px;
   --menu-item-justify: left;
+  /* Workaround weird contain-css issues (should be removable once we fix contain-css) */
+  --fg: inherit;
+  --bg: inherit;
 }
+
+/* Items we should remove later when we have
+properly fixed contain-css */
+
 :disabled {
   cursor: not-allowed !important;
   transform: none;
   filter: grayscale(50%) !important;
 }
+
+
