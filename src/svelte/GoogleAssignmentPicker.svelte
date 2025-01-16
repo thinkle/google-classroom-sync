@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MenuList, Button } from "contain-css-svelte";
+  import { MenuList, Button, Checkbox } from "contain-css-svelte";
   import { GoogleAppsScript } from "./gasApi";
   import { aspenAssignments, assignmentMap } from "./store";
 
@@ -10,15 +10,61 @@
   };
 
   let selectedGoogleAssignment = null;
+
+  const filters = [
+    {
+      title: 'Already linked',
+      active: false,
+      filter : (assignment) => {
+        return assignment.id in $assignmentMap;
+      }
+    },
+    {
+      title: 'Not linked',
+      active: false,
+      filter : (assignment) => {
+        return !(assignment.id in $assignmentMap);
+      }
+    },
+    {
+      title: 'Only Graded',
+      active: true,
+      filter : (assignment) => {
+        return assignment.maxPoints;
+      }
+    }    
+  ];
+
+  $: displayAssignments = assignments.filter(assignment => {
+    return filters.every(filter => {
+      return !filter.active || filter.filter(assignment);
+    });
+  }).sort(
+    (a,b)=>{
+      if (a.dueDate && b.dueDate) {
+        return a.dueDate.year - b.dueDate.year || a.dueDate.month - b.dueDate.month || a.dueDate.day - b.dueDate.day;
+      } else {
+        return 0;
+      }
+    }
+  );
+  
+
 </script>
 
 <h3 class="google text-w-icon"><div class="google-icon"></div> Assignments</h3>
 {#if !selectedGoogleAssignment}
   <p>Select a Google Classroom Assignment</p>
 {/if}
-
+{#each filters as filter}
+  <Checkbox
+    bind:checked={filter.active}    
+  >
+    {filter.title}
+  </Checkbox>
+{/each}
 <MenuList>
-  {#each assignments as assignment}
+  {#each displayAssignments as assignment}
     {@const linked = $assignmentMap[assignment.id]}
     <li class="google-assignment">
       <Button
