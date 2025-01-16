@@ -10,7 +10,7 @@
   };
 
   let selectedGoogleAssignment = null;
-
+  $:console.log('assignment map:',$assignmentMap);
   const filters = [
     {
       title: 'Already linked',
@@ -35,19 +35,41 @@
     }    
   ];
 
+  function getEffectiveDate (assignment) {
+    if (assignment.dueDate) {
+      return new Date(
+        assignment.dueDate.year,
+        assignment.dueDate.month - 1,
+        assignment.dueDate.day,
+        assignment.dueTime?.hour || 12,
+        assignment.dueTime?.minute || 0
+      );
+    } else {
+      return new Date(assignment.creationTime);
+    }
+  }
+
   $: displayAssignments = assignments.filter(assignment => {
     return filters.every(filter => {
       return !filter.active || filter.filter(assignment);
     });
   }).sort(
+    // newest first
     (a,b)=>{
-      if (a.dueDate && b.dueDate) {
-        return a.dueDate.year - b.dueDate.year || a.dueDate.month - b.dueDate.month || a.dueDate.day - b.dueDate.day;
+      let date1 = getEffectiveDate(a);
+      let date2 = getEffectiveDate(b);
+      if(date1 && date2){
+        return date2-date1;
+      } else if(date1){
+        return 1;
+      } else if(date2){
+        return -1;
       } else {
         return 0;
       }
     }
   );
+  $: console.log('Sorted and filtered',displayAssignments);
   
 
 </script>
