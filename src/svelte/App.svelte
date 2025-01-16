@@ -404,5 +404,8 @@
   h2 {
     font-size: 1rem;
   }
-  
+  /* Ugly fix for close buttons that go oval on me */
+  .text-w-icon :global(button) {
+    flex-shrink: 0;
+  }  
 </style>
