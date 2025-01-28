@@ -1,4 +1,6 @@
 <script lang="ts">
+  import SyncManyAssignments from './SyncManyAssignments.svelte';
+
 	
 	import GoogleAssignmentPicker from './GoogleAssignmentPicker.svelte';
   import Test from "./Test.svelte";
@@ -13,8 +15,8 @@
   import "contain-css-svelte/vars/defaults.css";
   import "contain-css-svelte/themes/typography-airy.css";
   import "./contain-theme.css";
-  import { courseMap, studentLookup, assignmentMap, googleAssignments, aspenAssignments } from "./store.ts";
-  import { Page, Bar, Button, Sidebar, MiniButton } from "contain-css-svelte";
+  import { courseMap, assignmentMap, googleAssignments, aspenAssignments } from "./store";
+  import { Page, Bar, Button, Sidebar, MiniButton, Select } from "contain-css-svelte";
   import GoogleCourseLinker from "./GoogleCourseLinker.svelte";
   import GoogleAssignmentMapper from "./GoogleAssignmentMapper.svelte";
   import GradePoster from './GradePoster.svelte';
@@ -22,7 +24,8 @@
   let teacher: User | undefined;
   let aspenCourses: Course[] = [];
   let googleCourses : Course[] = [];
-
+  
+  
   let loading = false;
   onMount(async () => {
     loading = true;
@@ -44,6 +47,7 @@
       console.log("No settings found");
       return;
     }
+    console.log('Loaded settings from config sheet',settings);
     if (settings.assessmentLinks) {
       // Let's map these things into our persistent local storage...
       for (let [key, value] of Object.entries(settings.assessmentLinks)) {
@@ -213,6 +217,9 @@
   }
   
  
+  // Our default mode is the "wizard" but we'll have a separate mode...
+  let tool : 'wizard' | 'magic-sync' = 'wizard';
+
 </script>
 
 <Page
@@ -223,19 +230,23 @@
       <h1>Google Classroom Sync Tool!</h1>
     </div>
     <div>
-      Step {step+1}
-      {#if step == LOADING}
-        <span> (Loading...)</span>
-      {:else if step == CHOOSE_ASPEN_COURSE}
-        <span> (Choose Aspen Course)</span>
-      {:else if step == CHOOSE_GOOGLE_COURSE}
-        <span> (Choose Google Course)</span>
-      {:else if step == CHOOSE_GOOGLE_ASSIGNMENT}
-        <span> (Choose Google Assignment)</span>
-      {:else if step == CHOOSE_ASPEN_ASSIGNMENT}
-        <span> (Choose Aspen Assignment)</span>
-      {:else if step == MAP_GRADES}
-        <span> (Map Grades)</span>
+      {#if tool === 'wizard'}
+        Step {step+1}
+        {#if step == LOADING}
+          <span> (Loading...)</span>
+        {:else if step == CHOOSE_ASPEN_COURSE}
+          <span> (Choose Aspen Course)</span>
+        {:else if step == CHOOSE_GOOGLE_COURSE}
+          <span> (Choose Google Course)</span>
+        {:else if step == CHOOSE_GOOGLE_ASSIGNMENT}
+          <span> (Choose Google Assignment)</span>
+        {:else if step == CHOOSE_ASPEN_ASSIGNMENT}
+          <span> (Choose Aspen Assignment)</span>
+        {:else if step == MAP_GRADES}
+          <span> (Map Grades)</span>
+        {/if}
+      {:else if tool =='magic-sync'}
+        <span>Magic Sync</span>
       {/if}
     </div>    
     <div
@@ -243,7 +254,12 @@
       style:--button-bg="var(--container-bg)"
       style:--button-shadow-color="transparent"
     ></div>
-    <div class="right"></div>      
+    <div class="right">
+      <Select bind:value={tool}>
+        <option value="wizard">One Assignment</option>
+        <option value="magic-sync">Update & Sync</option>
+      </Select>
+    </div>      
   </Bar>
   <Sidebar slot="sidebar">
     <h2>Authenticated</h2>
@@ -326,77 +342,85 @@
     
   </Sidebar>
   <main>
-    {#if step == LOADING}
-      <p>
-        Checking your Credentials with Google & Aspen and trying to grab your
-        classes...
-      </p>    
-      {#if !email}
-        <Button on:click={getGoogleEmail}>Log In to Google</Button>
+    {#if tool == 'magic-sync'}
+      <SyncManyAssignments
+        {aspenCourses}
+        {googleCourses}
+        {email}
+        {teacher}
+      ></SyncManyAssignments>
+    {:else if tool == 'wizard'}          
+      {#if step == LOADING}
+        <p>
+          Checking your Credentials with Google & Aspen and trying to grab your
+          classes...
+        </p>    
+        {#if !email}
+          <Button on:click={getGoogleEmail}>Log In to Google</Button>
+        {/if}
+        {#if !teacher}
+          <Button on:click={getAspenTeacher} left>
+            <div slot="icon" class="aspen-icon"></div>
+            Get Aspen Teacher</Button>
+        {/if}
+        {#if aspenCourses.length == 0}
+          <Button left on:click={getAspenCourses}>
+            <div slot="icon" class="aspen-icon"></div>
+            Get Courses</Button>
+          <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
+        {/if}
       {/if}
-      {#if !teacher}
-        <Button on:click={getAspenTeacher} left>
-          <div slot="icon" class="aspen-icon"></div>
-          Get Aspen Teacher</Button>
-      {/if}
-      {#if aspenCourses.length == 0}
-        <Button left on:click={getAspenCourses}>
-          <div slot="icon" class="aspen-icon"></div>
-          Get Courses</Button>
-        <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
-      {/if}
-    {/if}
-  
-    {#if step == CHOOSE_ASPEN_COURSE}
-      Got {aspenCourses.length} courses
-      <AspenClassList courses={aspenCourses} on:select={selectAspenCourse} />
-    {/if}
-
-    {#if step == CHOOSE_GOOGLE_COURSE}
-      
-      <GoogleCourseLinker 
-      aspenCourse={theAspenCourse}
-      />
-    {/if}
-    {#if step == CHOOSE_GOOGLE_ASSIGNMENT}
-      {#if !theGoogleCourse}
-        Loading google course...
-        <Button on:click={fetchGoogleCourse}>Reload Course Data</Button>
-      {:else if !theGoogleAssignments}
-        Loading google assignments...        
-      {/if}
-      {#if theGoogleCourse}
-        <Button on:click={fetchAssignments}>Reload Assignments</Button>
-      {/if}
-      <GoogleAssignmentPicker 
-        assignments={theGoogleAssignments}
-        onSelect={(assignment)=>{theGoogleAssignment = assignment}}
-        />
-    {/if}
-    {#if step == CHOOSE_ASPEN_ASSIGNMENT}
-      <h2>Choose Aspen Assignment</h2>
-      <GoogleAssignmentMapper
-        aspenCourse={theAspenCourse}
-        googleCourse={theGoogleCourse}
-        googleAssignment={theGoogleAssignment}
-        categories={categories}
-        onSelect={(assignment)=>{
-          console.log('GoogleAssignmentMapper => onSelect',assignment);          
-          theAspenAssignment = assignment
-          assignmentMap.setKey(theGoogleAssignment.id, theAspenAssignment.sourcedId);          
-          }}
-        />
-    {/if}
-    {#if step == MAP_GRADES}
-      <h2>Post Grades for {theGoogleAssignment?.title}</h2>      
-      <GradePoster
-        googleCourseId={theGoogleCourseID}
-        aspenCourse={theAspenCourse}
-        aspenAssignment={theAspenAssignment}
-        googleAssignment={theGoogleAssignment}
-        />
-    {/if}
     
+      {#if step == CHOOSE_ASPEN_COURSE}
+        Got {aspenCourses.length} courses
+        <AspenClassList courses={aspenCourses} on:select={selectAspenCourse} />
+      {/if}
+
+      {#if step == CHOOSE_GOOGLE_COURSE}
+        
+        <GoogleCourseLinker 
+        aspenCourse={theAspenCourse}
+        />
+      {/if}
+      {#if step == CHOOSE_GOOGLE_ASSIGNMENT}
+        {#if !theGoogleCourse}
+          Loading google course...
+          <Button on:click={fetchGoogleCourse}>Reload Course Data</Button>
+        {:else if !theGoogleAssignments}
+          Loading google assignments...        
+        {/if}
+        {#if theGoogleCourse}
+          <Button on:click={fetchAssignments}>Reload Assignments</Button>
+        {/if}
+        <GoogleAssignmentPicker 
+          assignments={theGoogleAssignments}
+          onSelect={(assignment)=>{theGoogleAssignment = assignment}}
+          />
+      {/if}
+      {#if step == CHOOSE_ASPEN_ASSIGNMENT}
+        <h2>Choose Aspen Assignment</h2>
+        <GoogleAssignmentMapper
+          aspenCourse={theAspenCourse}
+          googleCourse={theGoogleCourse}
+          googleAssignment={theGoogleAssignment}
+          categories={categories}
+          onSelect={(assignment)=>{
+            console.log('GoogleAssignmentMapper => onSelect',assignment);          
+            theAspenAssignment = assignment
+            assignmentMap.setKey(theGoogleAssignment.id, theAspenAssignment.sourcedId);          
+            }}
+          />
+      {/if}
+      {#if step == MAP_GRADES}
+        <h2>Post Grades for {theGoogleAssignment?.title}</h2>      
+        <GradePoster
+          googleCourseId={theGoogleCourseID}
+          aspenCourse={theAspenCourse}
+          aspenAssignment={theAspenAssignment}
+          googleAssignment={theGoogleAssignment}
+          />
+      {/if}
+    {/if}
   </main>
 </Page>
 
