@@ -72,6 +72,7 @@ function ConfigInterface() {
 
       for (let i = 0; i < values.length; i++) {
         if (values[i][0] === key) {
+          console.log('Update row',i,key,value,'to config',title);
           sheet.getRange(i + 1, 2).setValue(value);
           found = true;
           break;
@@ -79,6 +80,7 @@ function ConfigInterface() {
       }
 
       if (!found) {
+        console.log('Append new value',key,value,'to config',title);
         sheet.appendRow([key, value]);
       }
     }
@@ -100,9 +102,16 @@ function ConfigInterface() {
       const range = sheet.getRange("A:B");
       const values = range.getValues();
       const result = {};
-
+      let seenKeys = new Set();
       for (let i = 0; i < values.length; i++) {
-        result[values[i][0]] = values[i][1];
+        let key = values[i][0];
+        if (seenKeys.has(key)) {
+          console.error('Duplicate key in config',title,key);
+          continue;
+        } else {
+          seenKeys.add(key);
+          result[values[i][0]] = values[i][1];
+        }
       }
 
       return result;
@@ -124,7 +133,10 @@ function ConfigInterface() {
       sheet.appendRow(columns);
     }
 
-    function readEntries() {
+    function readEntries() {      
+      if (sheet.getLastRow() < 2) {
+        return [];
+      }
       const range = sheet.getRange(
         2,
         1,
@@ -142,11 +154,13 @@ function ConfigInterface() {
     }
 
     function appendEntry(entry) {
+      console.log('Appending entry to ',title,entry);
       const row = columns.map((col) => entry[col] || "");
       sheet.appendRow(row);
     }
 
     function appendEntries(entries) {
+      console.log('Appending entries to ',title,entries);
       const rows = entries.map((entry) =>
         columns.map((col) => entry[col] || "")
       );
