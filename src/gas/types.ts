@@ -1,4 +1,4 @@
-interface User {
+export interface User {
   sourcedId: string;
   status: "active" | "inactive"; // Adjust this if there are other possible statuses.
   dateLastModified: string;
@@ -21,13 +21,13 @@ interface User {
   birthDate: string | null;
 }
 
-interface Org {
+export interface Org {
   href: string;
   sourcedId: string;
   type: "org"; // Adjust this if there are different types of organizations.
 }
 
-interface Course {
+export interface Course {
   sourcedId: string;
   status: "active" | "tobedeleted";
   dateLastModified: string;
@@ -39,13 +39,13 @@ interface Course {
   org: Reference;
 }
 
-interface Reference {
+export interface Reference {
   href: string;
   sourcedId: string;
   type: string;
 }
 
-interface LineItem {
+export interface LineItem {
   sourcedId: string;
   status: "active" | "tobedeleted";
   dateLastModified: string;
@@ -59,20 +59,20 @@ interface LineItem {
   resultValueMax?: number;
 }
 
-interface Reference {
+export interface Reference {
   href: string;
   sourcedId: string;
   type: string;
 }
 // Interface for Category
-interface Category {
+export interface Category {
   href: string;
   sourcedId: string;
   type: string;
 }
 
 // Interface for GradingPeriod
-interface GradingPeriod {
+export interface GradingPeriod {
   href: string;
   sourcedId: string;
   type: string;
