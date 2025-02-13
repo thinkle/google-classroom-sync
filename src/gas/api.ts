@@ -16,37 +16,37 @@ export function foo(s: string) {
 }
 
 import { fetchTeacherByEmail } from "./aspen";
-export { 
-  logApiCall, 
+export {
+  logApiCall,
   logGrades,
-  getAssessmentConnections, 
+  getAssessmentConnections,
   getCourseConnections,
   getStudentConnections,
   getGradeLog,
   getSettings,
   connectAssessments,
   connectCourses,
-  connectStudents } from "./logging";
+  connectStudents,
+} from "./logging";
 
-export function fetchAspenTeacher () {
+export function fetchAspenTeacher() {
   let email = getActiveUserEmail();
   return fetchTeacherByEmail(email);
 }
 
-
-export {    
+export {
   fetchAspenCourses,
   fetchLineItems,
   fetchCategories,
-  fetchGradingPeriods,  
+  fetchGradingPeriods,
   createLineItem,
   fetchAspenRoster,
-  postGrade
+  postGrade,
 } from "./aspen";
 
 export {
   fetchGoogleAssessments,
   fetchGoogleCourses,
   fetchGoogleGrades,
+  fetchRubric,
 } from "./googleClassroom";
-
