@@ -1,15 +1,15 @@
 import { logApiCall, logGrades } from "./logging";
 import { httpRequest } from "./util";
+import type { User, Course, LineItem, GradingPeriod, Category } from "./types";
 
 function aspenInterface() {
-
   /*
-  * All code related to our API *must* be encapsulated
-  * here, as all top-level functions are exposed in client code
-  * and we cannot expose our Aspen API keys or calls directly.
-  * Be *very* careful what you expose here and note that things
-  * like caching calls and tokens *also* must be encapsulated. 
-  */
+   * All code related to our API *must* be encapsulated
+   * here, as all top-level functions are exposed in client code
+   * and we cannot expose our Aspen API keys or calls directly.
+   * Be *very* careful what you expose here and note that things
+   * like caching calls and tokens *also* must be encapsulated.
+   */
 
   const TOKEN_KEY = "aspen_access_token";
   const EXPIRATION_KEY = "aspen_token_expiration";
@@ -55,8 +55,6 @@ function aspenInterface() {
       localStorage.setItem(key, value);
     }
   }
-
-
 
   async function getAccessToken() {
     const now = Date.now();
@@ -132,7 +130,7 @@ function aspenInterface() {
      be extremely careful to enforce it ourselves.
   */
 
-  async function hasAccessToCourse (courseId: string) : Promise<boolean> {
+  async function hasAccessToCourse(courseId: string): Promise<boolean> {
     if (typeof Session == "undefined") {
       // override -- local testing environment
       return true;
@@ -140,16 +138,21 @@ function aspenInterface() {
     let authorizedEmail = Session.getActiveUser().getEmail();
     let authorizedTeacher = await fetchTeacherByEmail(authorizedEmail);
     let authorizedCourses = await fetchAspenCourses(authorizedTeacher);
-    if (authorizedCourses.find(course => course.sourcedId == courseId)) {
+    if (authorizedCourses.find((course) => course.sourcedId == courseId)) {
       return true;
     } else {
-      console.error('Teacher', authorizedTeacher, 'does not have access to course', courseId);
+      console.error(
+        "Teacher",
+        authorizedTeacher,
+        "does not have access to course",
+        courseId
+      );
       return false;
     }
     return false;
   }
 
-  async function hasAccessToLineItem (lineItemId : string) : Promise<boolean> {
+  async function hasAccessToLineItem(lineItemId: string): Promise<boolean> {
     if (typeof Session == "undefined") {
       // override -- local testing environment
       return true;
@@ -162,11 +165,12 @@ function aspenInterface() {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
-      }});
+      },
+    });
     const data = await response.json();
     let lineItem = data.lineItem;
     let courseId = lineItem.class.sourcedId;
-    return hasAccessToCourse(courseId);    
+    return hasAccessToCourse(courseId);
   }
 
   async function fetchTeacherByEmail(email: string): Promise<User> {
@@ -229,7 +233,7 @@ function aspenInterface() {
       logApiCall({
         method: "GET",
         url: url,
-        response: await response.text()
+        response: await response.text(),
       });
       throw new Error("Failed to fetch line items: " + (await response.text()));
     }
@@ -237,10 +241,10 @@ function aspenInterface() {
     const data = await response.json();
     console.log("Line items fetched: ", data.lineItems);
     logApiCall({
-      method : "GET",
-      url : url,
-      response : `${data.lineItems.length} line items fetched`
-    })
+      method: "GET",
+      url: url,
+      response: `${data.lineItems.length} line items fetched`,
+    });
     return data.lineItems;
   }
 
@@ -261,11 +265,11 @@ function aspenInterface() {
     });
     const data = await response.json();
     console.log("Students fetched: ", data.users);
-        logApiCall({
-          method: "GET",
-          url: url,
-          response: `${data.users.length} students fetched`
-        });
+    logApiCall({
+      method: "GET",
+      url: url,
+      response: `${data.users.length} students fetched`,
+    });
     return data.users;
   }
 
@@ -345,7 +349,7 @@ function aspenInterface() {
     logApiCall({
       method: "PUT",
       url: url,
-      response: `Line item created: ${data.lineItem.title} ${data.lineItem.sourcedId}`
+      response: `Line item created: ${data.lineItem.title} ${data.lineItem.sourcedId}`,
     });
     return data.lineItem;
   }
@@ -381,7 +385,6 @@ function aspenInterface() {
       throw new Error("Unauthorized access to line item data");
     }
 
-
     const accessToken = await getAccessToken();
     const url = `https://ma-innovation.myfollett.com/ims/oneroster/v1p1/results/${resultId}`;
 
@@ -399,19 +402,17 @@ function aspenInterface() {
       logApiCall({
         method: "PUT",
         url: url,
-        response: await response.text()
+        response: await response.text(),
       });
       throw new Error("Failed to post result: " + (await response.text()));
     }
 
     const data = await response.json();
-    logApiCall(
-      {
-        method: "PUT",
-        url: url,
-        response: `Result posted: ${data.result.sourcedId}`
-      }
-    )
+    logApiCall({
+      method: "PUT",
+      url: url,
+      response: `Result posted: ${data.result.sourcedId}`,
+    });
     console.log("Result posted: ", data);
     return data;
   }
@@ -433,7 +434,7 @@ function aspenInterface() {
         comment: comment,
       },
     };
-    let data = await postResult(id, resultObject);    
+    let data = await postResult(id, resultObject);
     return data;
   }
 
@@ -482,7 +483,10 @@ export function fetchGradingPeriods(): Promise<GradingPeriod[]> {
   return aspenAPI.fetchGradingPeriods();
 }
 
-export function createLineItem(id: string, lineItemData: LineItem): Promise<LineItem> {
+export function createLineItem(
+  id: string,
+  lineItemData: LineItem
+): Promise<LineItem> {
   return aspenAPI.createLineItem(id, lineItemData);
 }
 
