@@ -77,3 +77,44 @@ export interface GradingPeriod {
   sourcedId: string;
   type: string;
 }
+
+export interface Level {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+}
+
+export interface Criterion {
+  id: string;
+  description: string;
+  title: string;
+  levels: Level[];
+  // Populated after the map, so it holds a quick-reference by level ID
+  levelsMap: Record<string, Level>;
+}
+
+export interface Rubric {
+  id: string;
+  courseId: string;
+  criteria: Criterion[];
+  // Populated after the map, so it holds a quick-reference by criterion ID
+  criteriaMap: Record<string, Criterion>;
+}
+export interface RubricGrade {
+  criterion: string;
+  level: string;
+  points: number;
+  criterionId: string;
+  levelId: string;
+  description: string;
+}
+export interface Grade {
+  studentEmail: string;
+  studentName: string;
+  assignedGrade: number | null;
+  maximumGrade: number;
+  submissionState: string;
+  late: boolean;
+  rubricGrades?: RubricGrade[];
+}

@@ -1,4 +1,4 @@
-import { Rubric } from "./types";
+import { Grade, Rubric, RubricGrade } from "./types";
 
 export function fetchGoogleCourses() {
   let teacherEmail = Session.getActiveUser().getEmail();
@@ -50,23 +50,6 @@ export function fetchGoogleSubmissions(
   );
   return submissions;
 }
-
-type RubricGrade = {
-  criterion: string;
-  level: string;
-  points: number;
-  id: string;
-};
-
-type Grade = {
-  studentEmail: string;
-  studentName: string;
-  assignedGrade: number | null;
-  maximumGrade: number;
-  submissionState: string;
-  late: boolean;
-  rubricGrades?: RubricGrade[];
-};
 
 const rubricCache = {};
 
@@ -137,8 +120,10 @@ function mapRubricGrades(rubricMap: RubricMap, rubric: Rubric): RubricGrade[] {
     rubricGrades.push({
       criterion: criterion?.title,
       level: level?.title,
+      description: level.description,
       points,
-      id: key,
+      criterionId: key,
+      levelId: grade.levelId,
     });
   }
   return rubricGrades;
