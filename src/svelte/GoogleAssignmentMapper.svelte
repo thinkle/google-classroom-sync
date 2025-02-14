@@ -53,6 +53,9 @@
 
   function getTitle(title, suffix) {
     const LENGTH_LIMIT = 10;
+    if (!suffix) {
+      return title;
+    }
     let combinedTitle = title + " " + suffix;
     if (combinedTitle.length < LENGTH_LIMIT) {
       return combinedTitle;
