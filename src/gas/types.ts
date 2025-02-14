@@ -69,6 +69,7 @@ export interface Category {
   href: string;
   sourcedId: string;
   type: string;
+  title: string;
 }
 
 // Interface for GradingPeriod
