@@ -3,13 +3,12 @@
   import { GoogleAppsScript } from "./gasApi";
   export let categories;
   export let selected;
-  
+
   export let onCategorySelected = (category) => {
     console.log("Fix me!", JSON.stringify(category));
   };
 
   let selectedCategoryIndex = categories.indexOf(selected);
-
 
   $: if (categories && categories.length > 0) {
     onCategorySelected(categories[selectedCategoryIndex]);
