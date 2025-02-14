@@ -28,10 +28,10 @@ export const GoogleAppsScript = {
       });
     },
 
-     fetchAspenTeacher(): Promise<Promise<User>> {
+     fetchAspenTeacher(): Promise<Promise<import("../gas/types").User>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<User>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").User>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchAspenTeacher();
       });
@@ -127,16 +127,16 @@ export const GoogleAppsScript = {
       });
     },
 
-     fetchAspenCourses(teacher: User): Promise<Promise<Course[]>> {
+     fetchAspenCourses(teacher: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").User): Promise<Promise<import("../gas/types").Course[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<Course[]>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").Course[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchAspenCourses(teacher);
       });
     },
 
-     fetchLineItems(course: Course): Promise<Promise<LineItem[]>> {
+     fetchLineItems(course: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Course): Promise<Promise<LineItem[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: Promise<LineItem[]>) => resolve(result))
@@ -172,10 +172,10 @@ export const GoogleAppsScript = {
       });
     },
 
-     fetchAspenRoster(classId: string): Promise<Promise<User[]>> {
+     fetchAspenRoster(classId: string): Promise<Promise<import("../gas/types").User[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<User[]>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").User[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchAspenRoster(classId);
       });
@@ -208,12 +208,21 @@ export const GoogleAppsScript = {
       });
     },
 
-     fetchGoogleGrades(courseId: any, assessmentId: any): Promise<Grade[]> {
+     fetchGoogleGrades(courseId: any, assessmentId: any): Promise<import("../gas/types").Grade[]> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Grade[]) => resolve(result))
+          .withSuccessHandler((result: import("../gas/types").Grade[]) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchGoogleGrades(courseId, assessmentId);
+      });
+    },
+
+     fetchRubric(courseId: any, assessmentId: any): Promise<import("../gas/types").Rubric> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: import("../gas/types").Rubric) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .fetchRubric(courseId, assessmentId);
       });
     }
 }
