@@ -1,8 +1,7 @@
 <script lang="ts">
-  import SyncManyAssignments from './SyncManyAssignments.svelte';
+  import SyncManyAssignments from "./SyncManyAssignments.svelte";
 
-	
-	import GoogleAssignmentPicker from './GoogleAssignmentPicker.svelte';
+  import GoogleAssignmentPicker from "./GoogleAssignmentPicker.svelte";
   import Test from "./Test.svelte";
 
   import AspenCourse from "./AspenCourse.svelte";
@@ -15,17 +14,28 @@
   import "contain-css-svelte/vars/defaults.css";
   import "contain-css-svelte/themes/typography-airy.css";
   import "./contain-theme.css";
-  import { courseMap, assignmentMap, googleAssignments, aspenAssignments } from "./store";
-  import { Page, Bar, Button, Sidebar, MiniButton, Select } from "contain-css-svelte";
+  import {
+    courseMap,
+    assignmentMap,
+    googleAssignments,
+    aspenAssignments,
+  } from "./store";
+  import {
+    Page,
+    Bar,
+    Button,
+    Sidebar,
+    MiniButton,
+    Select,
+  } from "contain-css-svelte";
   import GoogleCourseLinker from "./GoogleCourseLinker.svelte";
   import GoogleAssignmentMapper from "./GoogleAssignmentMapper.svelte";
-  import GradePoster from './GradePoster.svelte';
+  import GradePoster from "./GradePoster.svelte";
   let email: string;
   let teacher: User | undefined;
   let aspenCourses: Course[] = [];
-  let googleCourses : Course[] = [];
-  
-  
+  let googleCourses: Course[] = [];
+
   let loading = false;
   onMount(async () => {
     loading = true;
@@ -47,7 +57,7 @@
       console.log("No settings found");
       return;
     }
-    console.log('Loaded settings from config sheet',settings);
+    console.log("Loaded settings from config sheet", settings);
     if (settings.assessmentLinks) {
       // Let's map these things into our persistent local storage...
       for (let [key, value] of Object.entries(settings.assessmentLinks)) {
@@ -98,23 +108,34 @@
     loadingCourses = false;
   }
 
-  async function fetchGoogleCourse () {    
+  async function fetchGoogleCourse() {
     if (!googleCourses?.length) {
       googleCourses = await GoogleAppsScript.fetchGoogleCourses();
-      if (!Array.isArray(googleCourses) || googleCourses.length < 1 || !googleCourses[0].id) {
+      if (
+        !Array.isArray(googleCourses) ||
+        googleCourses.length < 1 ||
+        !googleCourses[0].id
+      ) {
         console.info("No courses found -- got invalid data", googleCourses);
         googleCourses = [];
         // Let's try again...
         await fetchGoogleCourse();
         return;
       }
-    } else {    
-      theGoogleCourse = googleCourses.find((course) => course.id == theGoogleCourseID);
-      console.log('Found our match',theGoogleCourse,'among',googleCourses);
+    } else {
+      theGoogleCourse = googleCourses.find(
+        (course) => course.id == theGoogleCourseID
+      );
+      console.log("Found our match", theGoogleCourse, "among", googleCourses);
       if (theGoogleCourse) {
         await fetchAssignments();
       } else {
-        console.log('No course found that matches',theGoogleCourseID,'in',googleCourses);
+        console.log(
+          "No course found that matches",
+          theGoogleCourseID,
+          "in",
+          googleCourses
+        );
       }
     }
   }
@@ -125,7 +146,7 @@
     aspenCourses = [];
   }
 
-  let theAspenCourse;  
+  let theAspenCourse;
   let theGoogleCourseID;
   let theGoogleCourse;
   let theGoogleAssignments = [];
@@ -146,7 +167,7 @@
       }
     } catch (err) {
       console.error(err);
-      window.alert('Error fetching assignments: ' + err);
+      window.alert("Error fetching assignments: " + err);
     }
     fetchingAssignments = false;
   }
@@ -159,14 +180,14 @@
   let ready = false;
   const LOADING = 0;
   const CHOOSE_ASPEN_COURSE = 1;
-  const CHOOSE_GOOGLE_COURSE = 2;  
+  const CHOOSE_GOOGLE_COURSE = 2;
   const CHOOSE_GOOGLE_ASSIGNMENT = 3;
   const CHOOSE_ASPEN_ASSIGNMENT = 4;
   const MAP_GRADES = 5;
 
   let categories = [];
 
-  async function fetchCategories () {
+  async function fetchCategories() {
     categories = await GoogleAppsScript.fetchCategories(theAspenCourse);
   }
 
@@ -175,13 +196,13 @@
   }
 
   $: ready = teacher && aspenCourses.length > 0;
-  $: console.log('Updated ready =>',ready);
-  $: console.log('aspen courses=>',aspenCourses);
+  $: console.log("Updated ready =>", ready);
+  $: console.log("aspen courses=>", aspenCourses);
   $: if (!ready) {
     step = 0;
   }
   $: if (ready && !theAspenCourse) {
-    step = CHOOSE_ASPEN_COURSE;    
+    step = CHOOSE_ASPEN_COURSE;
     theAspenAssignment = null;
   }
   $: if (ready && theAspenCourse && !theGoogleCourseID) {
@@ -191,47 +212,59 @@
   }
   $: if (ready && theAspenCourse && theGoogleCourseID && !theGoogleAssignment) {
     step = CHOOSE_GOOGLE_ASSIGNMENT;
-    console.log('::Courses selected, choosing google assignment');
+    console.log("::Courses selected, choosing google assignment");
     theAspenAssignment = null;
     fetchGoogleCourse();
   }
-  
-  $: if (ready && theAspenCourse && theGoogleCourseID && theGoogleAssignment && !theAspenAssignment) {
-    console.log('::Google assignment selected');
+
+  $: if (
+    ready &&
+    theAspenCourse &&
+    theGoogleCourseID &&
+    theGoogleAssignment &&
+    !theAspenAssignment
+  ) {
+    console.log("::Google assignment selected");
     if ($assignmentMap[theGoogleAssignment.id]) {
-      console.log('We already have a mapping for this assignment',theGoogleAssignment.id,$assignmentMap[theGoogleAssignment.id]);
+      console.log(
+        "We already have a mapping for this assignment",
+        theGoogleAssignment.id,
+        $assignmentMap[theGoogleAssignment.id]
+      );
       let aspenId = $assignmentMap[theGoogleAssignment.id];
       theAspenAssignment = $aspenAssignments[aspenId];
       if (!theAspenAssignment) {
-        console.error('Could not find Aspen assignment with id',aspenId);                
+        console.error("Could not find Aspen assignment with id", aspenId);
       }
     }
     step = CHOOSE_ASPEN_ASSIGNMENT;
   }
-  $: if (ready && theAspenCourse && theGoogleCourseID && theGoogleAssignment && theAspenAssignment) {    
-    console.log('::Assignments selected, mapping grades');
+  $: if (
+    ready &&
+    theAspenCourse &&
+    theGoogleCourseID &&
+    theGoogleAssignment &&
+    theAspenAssignment
+  ) {
+    console.log("::Assignments selected, mapping grades");
     step = MAP_GRADES;
   }
   $: if (theAspenCourse && $courseMap[theAspenCourse.sourcedId]) {
-      theGoogleCourseID = $courseMap[theAspenCourse.sourcedId];
+    theGoogleCourseID = $courseMap[theAspenCourse.sourcedId];
   }
-  
- 
-  // Our default mode is the "wizard" but we'll have a separate mode...
-  let tool : 'wizard' | 'magic-sync' = 'wizard';
 
+  // Our default mode is the "wizard" but we'll have a separate mode...
+  let tool: "wizard" | "magic-sync" = "wizard";
 </script>
 
-<Page
-  
->
+<Page>
   <Bar slot="header">
     <div class="left">
       <h1>Google Classroom Sync Tool!</h1>
     </div>
     <div>
-      {#if tool === 'wizard'}
-        Step {step+1}
+      {#if tool === "wizard"}
+        Step {step + 1}
         {#if step == LOADING}
           <span> (Loading...)</span>
         {:else if step == CHOOSE_ASPEN_COURSE}
@@ -245,10 +278,10 @@
         {:else if step == MAP_GRADES}
           <span> (Map Grades)</span>
         {/if}
-      {:else if tool =='magic-sync'}
+      {:else if tool == "magic-sync"}
         <span>Magic Sync</span>
       {/if}
-    </div>    
+    </div>
     <div
       class="center"
       style:--button-bg="var(--container-bg)"
@@ -259,31 +292,33 @@
         <option value="wizard">One Assignment</option>
         <option value="magic-sync">Update & Sync</option>
       </Select>
-    </div>      
+    </div>
   </Bar>
   <Sidebar slot="sidebar">
     <h2>Authenticated</h2>
-      {#if email}
+    {#if email}
       <div class="google-info text-w-icon">
-        <div class="google-icon"></div> {email}          
+        <div class="google-icon"></div>
+        {email}
       </div>
-      {/if}          
-    <div class="aspen-info">        
-        <div class="aspen-icon"></div> {teacher
-          ? `${teacher.givenName} ${teacher.familyName}`
-          : "loading..."}
-      </div>
-    
+    {/if}
+    <div class="aspen-info">
+      <div class="aspen-icon"></div>
+      {teacher ? `${teacher.givenName} ${teacher.familyName}` : "loading..."}
+    </div>
+
     {#if step > CHOOSE_ASPEN_COURSE}
-      <hr>
+      <hr />
       <h2>Course</h2>
       <h3 class="text-w-icon">
-        <div class="aspen-icon"></div> 
+        <div class="aspen-icon"></div>
         {theAspenCourse?.title}
-        <MiniButton on:click={() => {                    
-          console.log('::: Set aspen course to null')
-          theAspenCourse = null;
-        }}>&times;</MiniButton>
+        <MiniButton
+          on:click={() => {
+            console.log("::: Set aspen course to null");
+            theAspenCourse = null;
+          }}>&times;</MiniButton
+        >
       </h3>
       {#if categories?.length}
         <p>
@@ -292,7 +327,7 @@
       {/if}
     {/if}
     {#if step > CHOOSE_GOOGLE_COURSE}
-      <hr>            
+      <hr />
       <h3 class="text-w-icon">
         <div class="google-icon"></div>
         {#if theGoogleCourse}
@@ -300,125 +335,134 @@
         {:else}
           Loading connected Google Course...
         {/if}
-        <MiniButton on:click={()=>{
-          console.log('::: Remove aspen->google COURSE mapping')
-          courseMap.setKey(theAspenCourse.sourcedId, null);
-          theGoogleCourseID = null;
-        }}>
+        <MiniButton
+          on:click={() => {
+            console.log("::: Remove aspen->google COURSE mapping");
+            courseMap.setKey(theAspenCourse.sourcedId, null);
+            theGoogleCourseID = null;
+          }}
+        >
           &times;
         </MiniButton>
       </h3>
-            
     {/if}
     {#if step > CHOOSE_GOOGLE_ASSIGNMENT}
       <h2>Assignment</h2>
-      <hr>
+      <hr />
       <h3>
-        <div class="google-icon"></div> {theGoogleAssignment?.title||'Google assignment without title'}
-        <MiniButton on:click={() => {
-          console.log('::: Set google assignment to null');
-          theGoogleAssignment = null;
-        }}>&times;</MiniButton>
+        <div class="google-icon"></div>
+        {theGoogleAssignment?.title || "Google assignment without title"}
+        <MiniButton
+          on:click={() => {
+            console.log("::: Set google assignment to null");
+            theGoogleAssignment = null;
+          }}>&times;</MiniButton
+        >
       </h3>
     {/if}
     {#if step > CHOOSE_ASPEN_ASSIGNMENT}
-      <hr>
+      <hr />
       <h3>
-        <div class="aspen-icon"></div> {theAspenAssignment?.title||'Aspen assignment without title'}
-        <MiniButton on:click={() => {    
-          console.log('::: remove google=> aspen assignment mapping');      
-          assignmentMap.setKey(theAspenCourse.sourcedId,null);
-          assignmentMap.setKey(theGoogleAssignment.id,null);
-          // These have to take effect?
-          //tick().then(
-          //  ()=>{             
-              theAspenAssignment = null;
-          //  }
-          //)          
-        }}>&times;</MiniButton>
+        <div class="aspen-icon"></div>
+        {theAspenAssignment?.title || "Aspen assignment without title"}
+        <MiniButton
+          on:click={() => {
+            console.log("::: remove google=> aspen assignment mapping");
+            assignmentMap.setKey(theAspenCourse.sourcedId, null);
+            assignmentMap.setKey(theGoogleAssignment.id, null);
+            // These have to take effect?
+            //tick().then(
+            //  ()=>{
+            theAspenAssignment = null;
+            //  }
+            //)
+          }}>&times;</MiniButton
+        >
       </h3>
     {/if}
-        
-    
   </Sidebar>
   <main>
-    {#if tool == 'magic-sync'}
-      <SyncManyAssignments
-        {aspenCourses}
-        {googleCourses}
-        {email}
-        {teacher}
+    {#if tool == "magic-sync"}
+      <SyncManyAssignments {aspenCourses} {googleCourses} {email} {teacher}
       ></SyncManyAssignments>
-    {:else if tool == 'wizard'}          
+    {:else if tool == "wizard"}
       {#if step == LOADING}
         <p>
           Checking your Credentials with Google & Aspen and trying to grab your
           classes...
-        </p>    
+        </p>
         {#if !email}
           <Button on:click={getGoogleEmail}>Log In to Google</Button>
         {/if}
         {#if !teacher}
           <Button on:click={getAspenTeacher} left>
             <div slot="icon" class="aspen-icon"></div>
-            Get Aspen Teacher</Button>
+            Get Aspen Teacher</Button
+          >
         {/if}
         {#if aspenCourses.length == 0}
           <Button left on:click={getAspenCourses}>
             <div slot="icon" class="aspen-icon"></div>
-            Get Courses</Button>
+            Get Courses</Button
+          >
           <AspenGradingPeriodSelector></AspenGradingPeriodSelector>
         {/if}
       {/if}
-    
+
       {#if step == CHOOSE_ASPEN_COURSE}
         Got {aspenCourses.length} courses
         <AspenClassList courses={aspenCourses} on:select={selectAspenCourse} />
       {/if}
 
       {#if step == CHOOSE_GOOGLE_COURSE}
-        
-        <GoogleCourseLinker 
-        aspenCourse={theAspenCourse}
-        />
+        <GoogleCourseLinker aspenCourse={theAspenCourse} />
       {/if}
       {#if step == CHOOSE_GOOGLE_ASSIGNMENT}
         {#if !theGoogleCourse}
           Loading google course...
           <Button on:click={fetchGoogleCourse}>Reload Course Data</Button>
         {:else if !theGoogleAssignments}
-          Loading google assignments...        
+          Loading google assignments...
         {/if}
         {#if theGoogleCourse}
           <Button on:click={fetchAssignments}>Reload Assignments</Button>
         {/if}
-        <GoogleAssignmentPicker 
+        <GoogleAssignmentPicker
           assignments={theGoogleAssignments}
-          onSelect={(assignment)=>{theGoogleAssignment = assignment}}
-          />
+          onSelect={(assignment) => {
+            theGoogleAssignment = assignment;
+          }}
+        />
       {/if}
       {#if step == CHOOSE_ASPEN_ASSIGNMENT}
         <h2>Choose Aspen Assignment</h2>
+        <!-- Fix Me: We have to handle the new onSelect signature where we can either... 
+         (1) Call onSelect(assignment) with just an assignment like we are used to. OR 
+         (2) Call onSelect(assignment,criterion) linking ONE criteria from the assignment 
+             rubric to a gradebook line item in case we want multiple line items per assignment...   -->
         <GoogleAssignmentMapper
           aspenCourse={theAspenCourse}
           googleCourse={theGoogleCourse}
           googleAssignment={theGoogleAssignment}
-          categories={categories}
-          onSelect={(assignment)=>{
-            console.log('GoogleAssignmentMapper => onSelect',assignment);          
-            theAspenAssignment = assignment
-            assignmentMap.setKey(theGoogleAssignment.id, theAspenAssignment.sourcedId);          
-            }}
-          />
+          {categories}
+          onSelect={(assignment) => {
+            console.log("GoogleAssignmentMapper => onSelect", assignment);
+            theAspenAssignment = assignment;
+            assignmentMap.setKey(
+              theGoogleAssignment.id,
+              theAspenAssignment.sourcedId
+            );
+          }}
+        />
       {/if}
       {#if step == MAP_GRADES}
-        <h2>Post Grades for {theGoogleAssignment?.title}</h2>      
+        <h2>Post Grades for {theGoogleAssignment?.title}</h2>
         <GradePoster
           googleCourseId={theGoogleCourseID}
           aspenCourse={theAspenCourse}
           aspenAssignment={theAspenAssignment}
           googleAssignment={theGoogleAssignment}
-          />
+        />
       {/if}
     {/if}
   </main>
@@ -431,5 +475,5 @@
   /* Ugly fix for close buttons that go oval on me */
   .text-w-icon :global(button) {
     flex-shrink: 0;
-  }  
+  }
 </style>
