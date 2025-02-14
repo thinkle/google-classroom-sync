@@ -1,3 +1,5 @@
+import { Rubric } from "/Users/thinkle/Projects/google-classroom-sync/src/gas/types";
+
 export function getActiveUserEmail(): string {
   return "thinkle@innovationcharter.org";
 }
@@ -10,30 +12,146 @@ export function foo(s: string): number {
   return 17;
 }
 
-
-
 export function getApiId(): string {
   return process.env.VITE_ASPEN_API_ID;
 }
 
 export {
-  testApiCall,  
-  fetchTeacherByEmail,
-  fetchLineItems,
-  fetchAspenCourses,
-  fetchCategories,
-  fetchGradingPeriods,
-  createLineItem,
-  fetchAspenRoster,
-  postGrade
+  testApiCall,
+  //fetchTeacherByEmail,
+  //fetchLineItems,
+  //fetchAspenCourses,
+  //fetchCategories,
+  //fetchGradingPeriods,
+  //createLineItem,
+  //fetchAspenRoster,
+  postGrade,
 } from "../../gas/aspen";
 
-import {
-  fetchTeacherByEmail
-} from '../../gas/aspen';
+export async function fetchLineItems(course) {
+  let dates = [new Date(), new Date() - 10, new Date() - 15];
+  let categories = await fetchCategories(course);
+  let words1 = ["Quiz", "Test", "Exercise"];
+  let words2 = ["Vocabulary", "Dance", "Craft", "Engineering", "Chemistry"];
+  let words3 = [
+    "Unit 1",
+    "Home",
+    "Advanced",
+    "Final",
+    "Summative",
+    "Formative",
+  ];
+  let resultValueMax = 4;
+  let resultValueMin = 0;
+  let lineItems = [];
+  for (let i = 0; i < 10; i++) {
+    lineItems.push({
+      sourcedId: "line-item-" + i,
+      title: `${oneOf(words1)} ${oneOf(words2)} ${oneOf(words3)}`,
+      description: "A very cool assignment",
+      category: oneOf(categories),
+      resultValueMax,
+      resultValueMin,
+      dueDate: oneOf(dates),
+      status: "active",
+    });
+  }
+  return lineItems;
+}
 
+export async function createLineItem(data) {
+  console.log("Created line item!", data);
+  return data;
+}
 
-export function fetchGoogleAssessments(courseId: any): GoogleAppsScript.Classroom.Schema.CourseWork[] {
+function oneOf(lst) {
+  return lst[Math.floor(Math.random() * lst.length)];
+}
+
+export async function fetchAspenRoster(course) {
+  let users = [];
+  let firsts = [
+    "Jose",
+    "Tom",
+    "Raul",
+    "Maria",
+    "Ysabel",
+    "Blaire",
+    "Aarav",
+    "Mihir",
+    "Sonya",
+    "Raji",
+    "Inaya",
+  ];
+  let lasts = [
+    "Hinkle",
+    "Smith",
+    "Rodriguez",
+    "Devia",
+    "diPaolo",
+    "Ng",
+    "Patel",
+  ];
+  for (let i = 0; i < 20; i++) {
+    users.push({
+      sourcedId: `user-${i}`,
+      status: "active",
+      givenName: oneOf(firsts),
+      familyName: oneOf(lasts),
+      role: "student",
+      email: `student${i}@example.com`,
+    });
+  }
+  return users;
+}
+
+export async function fetchTeacherByEmail(email) {
+  return {
+    email: "thinkle@innovationcharter.org",
+    status: "active",
+    givenName: "Thomas",
+    familyName: "Hinkle",
+    identifier: "thinkle",
+  };
+}
+export async function fetchAspenCourses(teacher) {
+  return [
+    {
+      sourcedId: "id1",
+      status: "active",
+      title: "Underwater Basketweaving",
+      courseCode: "BSK-01",
+      grades: ["9", "10", "11", "12"],
+      subjects: ["Gym", "Art"],
+      schoolYear: 2025,
+      org: "org",
+      course: { href: "#id1", id: "#id1" },
+    },
+    {
+      sourcedId: "id2",
+      status: "active",
+      title: "Advanced Gymnastics",
+      courseCode: "GYM-01",
+      grades: ["9", "10", "11", "12"],
+      subjects: ["Gym"],
+      schoolYear: 2025,
+      org: "org",
+      course: { href: "#id2", id: "#id2" },
+    },
+  ];
+}
+
+export async function fetchCategories(course) {
+  return {
+    href: "#category",
+    sourcedId: "catid",
+    type: "Cat",
+  };
+}
+
+export function fetchGoogleAssessments(
+  courseId: any
+): GoogleAppsScript.Classroom.Schema.CourseWork[] {
   return [
     {
       creatorUserId: "113561106451202000689",
@@ -310,8 +428,10 @@ export function fetchGoogleAssessments(courseId: any): GoogleAppsScript.Classroo
 }
 
 export function fetchGoogleCourses(teacherEmail: any): any[] {
-  return [{ id: "foo", name: "Course 1" },
-  { id: "bar", name: "Course 2" }]; // TODO: Replace with mock return value of type any[]  
+  return [
+    { id: "foo", name: "Course 1" },
+    { id: "bar", name: "Course 2" },
+  ]; // TODO: Replace with mock return value of type any[]
 }
 
 export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
@@ -323,6 +443,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       maximumGrade: 4,
       studentName: "Student One",
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 2.25,
@@ -331,6 +471,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Two",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "C",
+          points: 2,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "D",
+          points: 1,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student3@example.com",
@@ -339,6 +499,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Three",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student4@example.com",
@@ -347,6 +527,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       maximumGrade: 4,
       studentName: "Student Four",
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 1.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 3,
@@ -355,6 +555,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       maximumGrade: 4,
       studentName: "Student Five",
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 2.5,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student6@example.com",
@@ -362,6 +582,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       late: true,
       maximumGrade: 4,
       studentName: "Student Six",
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 3,
@@ -378,6 +618,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Eight",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student9@example.com",
@@ -386,6 +646,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Nine",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 1.67,
@@ -394,6 +674,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Ten",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student11@example.com",
@@ -402,6 +702,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "TURNED_IN",
       studentName: "Student Eleven",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student12@example.com",
@@ -410,6 +730,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Twelve",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       studentEmail: "student13@example.com",
@@ -418,6 +758,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Thirteen",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 3.33,
@@ -441,6 +801,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Sixteen",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 2.83,
@@ -449,6 +829,26 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Seventeen",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
     {
       draftGrade: 2.4,
@@ -457,25 +857,37 @@ export function fetchGoogleGrades(courseId: any, assessmentId: any): Grade[] {
       submissionState: "RETURNED",
       studentName: "Student Eighteen",
       maximumGrade: 4,
+      rubricGrades: [
+        {
+          criterion: "SD",
+          level: "A",
+          points: 4,
+          description: "Good",
+        },
+        {
+          criterion: "EX",
+          level: "B",
+          points: 3,
+          description: "good",
+        },
+        {
+          criterion: "EU",
+          level: "",
+          points: 3.5,
+          description: "",
+        },
+      ],
     },
   ];
-  
 }
 
 export function fetchAspenTeacher(): Promise<User> {
-  return fetchTeacherByEmail('thinkle@innovationcharter.org');
+  return fetchTeacherByEmail("thinkle@innovationcharter.org");
 }
 
+export function logApiCall(apiCall: any): void {}
 
-
-
-export function logApiCall(apiCall: any): void {
-  
-}
-
-export function logGrades(assessmentId: any, grades: any): void {
-  
-}
+export function logGrades(assessmentId: any, grades: any): void {}
 
 export function getAssessmentConnections(): {} {
   return null; // TODO: Replace with mock return value of type {}
@@ -489,26 +901,87 @@ export function getGradeLog(assessmentId: any): {}[] {
   return null; // TODO: Replace with mock return value of type {}[]
 }
 
-export function connectAssessments(googleAssessment: any, aspenAssessment: any): void {
-  
-}
+export function connectAssessments(
+  googleAssessment: any,
+  aspenAssessment: any
+): void {}
 
-export function connectCourses(googleCourse: any, aspenCourse: any): void {
-  
-}
+export function connectCourses(googleCourse: any, aspenCourse: any): void {}
 
-export function getStudentConnections(): { [key: string]: string; } {
+export function getStudentConnections(): { [key: string]: string } {
   return null; // TODO: Replace with mock return value of type { [key: string]: string; }
 }
 
-export function getSettings(): { assessmentLinks: { [key: string]: string; }; courseLinks: { [key: string]: string; }; studentLinks: { [key: string]: string; }; } {
+export function getSettings(): {
+  assessmentLinks: { [key: string]: string };
+  courseLinks: { [key: string]: string };
+  studentLinks: { [key: string]: string };
+} {
   return {
     assessmentLinks: {},
     courseLinks: {},
     studentLinks: {},
-  }
+  };
 }
 
-export function connectStudents(aspenStudent: string, googleStudent: string): void {
- return undefined; 
+export function connectStudents(
+  aspenStudent: string,
+  googleStudent: string
+): void {
+  return undefined;
+}
+
+export function fetchGradingPeriods(): Promise<GradingPeriod[]> {
+  return null; // TODO: Replace with mock return value of type Promise<GradingPeriod[]>
+}
+
+export function fetchRubric(
+  courseId: any,
+  assessmentId: any
+): import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Rubric {
+  let levels = [
+    { id: "lev0", title: "F", description: "oof", points: 0 },
+    { id: "lev1", title: "D", description: "not so good", points: 1 },
+    { id: "lev2", title: "C", description: "pretty ok", points: 2 },
+    { id: "lev3", title: "B", description: "good", points: 3 },
+    { id: "lev4", title: "A", description: "wowza", points: 4 },
+  ];
+  let levelsMap = {};
+  for (let l of levels) {
+    levelsMap[l.id] = l;
+  }
+
+  let baseRubric: Rubric = {
+    id: "the-only-rubric",
+    courseId,
+    criteriaMap: {},
+    criteria: [
+      {
+        id: "criteria-1",
+        description: "How hard you worked n stuff",
+        title: "Self Direction",
+        levels,
+        levelsMap,
+      },
+      {
+        id: "criteria-2",
+        description: "Conceptual understanding",
+        title: "Enduring Understanding",
+        levels,
+        levelsMap,
+      },
+      {
+        id: "criteria-3",
+        description: "Say wha",
+        title: "Experimentation",
+        levels,
+        levelsMap,
+      },
+    ],
+  };
+
+  for (let c of baseRubric.criteria) {
+    baseRubric.criteriaMap[c.id] = c;
+  }
+  return baseRubric;
 }

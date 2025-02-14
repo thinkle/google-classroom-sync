@@ -18,8 +18,8 @@ declare namespace google.script {
   connectAssessments(aspenAssessment: string, googleAssessment: string): void;
   connectCourses(aspenCourse: string, googleCourse: string): void;
   connectStudents(aspenStudent: string, googleStudent: string): void;
-  fetchAspenCourses(teacher: User): void;
-  fetchLineItems(course: Course): void;
+  fetchAspenCourses(teacher: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").User): void;
+  fetchLineItems(course: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Course): void;
   fetchCategories(course: any): void;
   fetchGradingPeriods(): void;
   createLineItem(id: string, lineItemData: LineItem): void;
@@ -27,7 +27,8 @@ declare namespace google.script {
   postGrade(id: any, lineItem: any, student: any, score: any, comment: any): void;
   fetchGoogleAssessments(courseId: any): void;
   fetchGoogleCourses(): void;
-  fetchGoogleGrades(courseId: any, assessmentId: any): void
+  fetchGoogleGrades(courseId: any, assessmentId: any): void;
+  fetchRubric(courseId: any, assessmentId: any): void
   }
   const run : GoogleScriptRun;
 
