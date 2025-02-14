@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AspenErrorSummarizer from './AspenErrorSummarizer.svelte';
+  import AspenErrorSummarizer from "./AspenErrorSummarizer.svelte";
 
   import GradePoster from "./GradePoster.svelte";
 
@@ -9,17 +9,28 @@
   import { GoogleAppsScript } from "./gasApi";
   import { aspenAssignments, assignmentMap } from "./store";
   import { onMount } from "svelte";
-  import { Button, Dialog, FormItem, TabBar, TabItem } from "contain-css-svelte";
+  import {
+    Button,
+    Dialog,
+    FormItem,
+    RadioButton,
+    TabBar,
+    TabItem,
+  } from "contain-css-svelte";
+  import type { Category, Criterion, Rubric } from "../gas/types";
 
   export let aspenCourse;
   export let googleAssignment;
   export let googleCourse;
-  export let categories = [];
+  export let categories: Category[] = [];
   let error = null;
 
-  export let onSelect = (aspenAssignment) => {
+  export let onSelect = (
+    aspenAssignment,
+    criterion: Criterion | undefined = undefined
+  ) => {
     console.log("You should provide an onSelect callback");
-    console.log("Selected:", aspenAssignment);
+    console.log("Selected:", aspenAssignment, criterion);
   };
 
   let selectedAspenAssignment = null;
@@ -27,7 +38,7 @@
   let newAspenLineItem = {};
   let existingAspenLineItem = null;
 
-  $: if (googleAssignment && mode == "CREATE") {
+  $: if (googleAssignment && mode == "CREATE" && rubricLinkMode > -3) {
     populateLineItem();
   }
 
@@ -40,14 +51,67 @@
     }
   }
 
+  function getTitle(title, suffix) {
+    const LENGTH_LIMIT = 10;
+    let combinedTitle = title + " " + suffix;
+    if (combinedTitle.length < LENGTH_LIMIT) {
+      return combinedTitle;
+    } else {
+      const shortened = title.replace(/\B[aeiou]\B/gi, "");
+      const shortenedSuffix = suffix.replace(/\B[aeiou]\B/gi, "");
+      if ((title + " " + shortenedSuffix).length < LENGTH_LIMIT) {
+        return title + " " + shortenedSuffix;
+      } else {
+        return shortenedSuffix + " " + title;
+      }
+    }
+  }
+
+  function shortenCriterion(title) {
+    const methods = [
+      (t) => t.replace(/\B./g, "").replace(/\s/g, ""),
+      (t) => t.replace(/\s/g, "").substring(0, 2),
+      (t) => t.replace(/\s/g, "").substring(0, 3),
+      (t) => t.replace(/\s/g, "").substring(0, 4),
+    ];
+
+    for (let method of methods) {
+      let shortened = method(title);
+      let count = 0;
+      for (let c of rubric.criteria) {
+        if (method(c.title) == shortened) {
+          count++;
+        }
+      }
+      if (count <= 1) {
+        return shortened;
+      }
+    }
+    // fallback
+    return title;
+  }
+
   function populateLineItem() {
     try {
-      console.log('Creating line item from',googleAssignment);
+      console.log("Creating line item from", googleAssignment);
+      let criterion: Criterion;
+      if (rubricLinkMode != OVERALL && rubricLinkMode != NONE && rubric) {
+        criterion = rubric.criteria[rubricLinkMode];
+      }
+
+      let matchingCategory = categories.find((c) => {
+        c.title.toLowerCase().includes(criterion.title.toLowerCase()) ||
+          criterion.title.toLowerCase().includes(c.title.toLowerCase());
+      });
+
       newAspenLineItem = {
         dueDate: formatDate(googleAssignment.dueDate),
         assignDate: googleAssignment.creationTime.split("T")[0],
-        title: googleAssignment.title,
-        description: `${googleAssignment.description||''}\n${googleAssignment.alternateLink||''}\n`,
+        title: getTitle(
+          googleAssignment.title,
+          criterion ? shortenCriterion(criterion.title) : ""
+        ),
+        description: `${googleAssignment.description || ""}\n${googleAssignment.alternateLink || ""}\n`,
         resultValueMax: googleAssignment.maxPoints || 4,
         resultValueMin: 0,
         class: {
@@ -55,6 +119,9 @@
           href: aspenCourse.course.href,
         },
       };
+      if (matchingCategory) {
+        newAspenLineItem.category = matchingCategory;
+      }
       console.log("Populated line item", newAspenLineItem);
     } catch (e) {
       console.error("Error populating line item", e);
@@ -63,7 +130,17 @@
   }
 
   function getLineItemId() {
-    return googleCourse.id + "-" + googleAssignment.id;
+    if (rubricLinkMode < 0) {
+      return googleCourse.id + "-" + googleAssignment.id;
+    } else {
+      return (
+        googleCourse.id +
+        "-" +
+        googleAssignment.id +
+        "-" +
+        rubric.criteria[rubricLinkMode].id
+      );
+    }
   }
 
   async function createLineItem() {
@@ -84,7 +161,14 @@
     console.log("And I have the items", $aspenAssignments);
     let item = $aspenAssignments[result.sourcedId];
     if (item) {
-      onSelect($aspenAssignments[result.sourcedId]);
+      if (rubricLinkMode < 0) {
+        onSelect($aspenAssignments[result.sourcedId]);
+      } else {
+        onSelect(
+          $aspenAssignments[result.sourcedId],
+          rubric.criteria[rubricLinkMode]
+        );
+      }
     } else {
       console.error(
         "Could not find item in list of assignments",
@@ -115,20 +199,60 @@
       let selectedAspenAssignmentId = $assignmentMap[googleAssignment.id];
       selectedAspenAssignment = $aspenAssignments[selectedAspenAssignmentId];
       if (selectedAspenAssignment) {
-        onSelect(selectedAspenAssignment);
+        if (rubricLinkMode > 0) {
+          onSelect(selectedAspenAssignment, rubric.criteria[rubricLinkMode]);
+        } else {
+          onSelect(selectedAspenAssignment);
+        }
       }
     }
   }
 
-  
-
-  function makeLink() {
-    onSelect(selectedAspenAssignment);
+  let rubric: Rubric;
+  async function doFetchRubric() {
+    rubric = await GoogleAppsScript.fetchRubric(
+      googleCourse.id,
+      googleAssignment.id
+    );
   }
+
+  const NONE = -2;
+  const OVERALL = -1;
+
+  let rubricLinkMode: number = NONE;
 </script>
 
-<h2 class="text-w-icon">Select <span><div class="aspen-icon"></div>Aspen Assignment</span> for 
-  <span><div class="google-icon"></div> {googleAssignment.title}</span></h2>
+<h2 class="text-w-icon">
+  Select <span
+    ><div class="aspen-icon"></div>
+    Aspen Assignment</span
+  >
+  for
+  <span
+    ><div class="google-icon"></div>
+    {googleAssignment.title}</span
+  >
+</h2>
+<Button on:click={doFetchRubric}
+  >Fetch Rubric (for linking multiple Aspen grades)</Button
+>
+{#if rubric}
+  <ul>
+    {#each rubric.criteria as criterion, i}
+      <li>
+        <RadioButton bind:group={rubricLinkMode} value={i}>
+          <b>{criterion.title}</b>
+          <span class="small">({criterion.description})</span>
+        </RadioButton>
+      </li>
+    {/each}
+    <li>
+      <RadioButton bind:group={rubricLinkMode} value={OVERALL}>
+        Overall Grade?
+      </RadioButton>
+    </li>
+  </ul>
+{/if}
 
 <TabBar>
   <TabItem active={mode == "LINK"} on:click={() => (mode = "LINK")}
@@ -188,13 +312,10 @@
     </FormItem>
   </div>
 {/if}
-<Dialog
-  modal={true}
-  onClose={() => (error = null)}
-  open={error}
-  >    
-  <AspenErrorSummarizer {error}></AspenErrorSummarizer>    
+<Dialog modal={true} onClose={() => (error = null)} open={error}>
+  <AspenErrorSummarizer {error}></AspenErrorSummarizer>
   <Button on:click={() => (error = null)} primary>OK</Button>
 </Dialog>
+
 <style>
 </style>
