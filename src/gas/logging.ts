@@ -71,8 +71,8 @@ function ConfigInterface() {
       let found = false;
 
       for (let i = 0; i < values.length; i++) {
-        if (values[i][0] === key) {
-          console.log('Update row',i,key,value,'to config',title);
+        if (values[i][0] == key) {
+          console.log("Update row", i, key, value, "to config", title);
           sheet.getRange(i + 1, 2).setValue(value);
           found = true;
           break;
@@ -80,7 +80,7 @@ function ConfigInterface() {
       }
 
       if (!found) {
-        console.log('Append new value',key,value,'to config',title);
+        console.log("Append new value", key, value, "to config", title);
         sheet.appendRow([key, value]);
       }
     }
@@ -90,7 +90,7 @@ function ConfigInterface() {
       const values = range.getValues();
 
       for (let i = 0; i < values.length; i++) {
-        if (values[i][0] === key) {
+        if (values[i][0] == key) {
           return values[i][1];
         }
       }
@@ -106,7 +106,7 @@ function ConfigInterface() {
       for (let i = 0; i < values.length; i++) {
         let key = values[i][0];
         if (seenKeys.has(key)) {
-          console.error('Duplicate key in config',title,key);
+          console.error("Duplicate key in config", title, key);
           continue;
         } else {
           seenKeys.add(key);
@@ -133,7 +133,7 @@ function ConfigInterface() {
       sheet.appendRow(columns);
     }
 
-    function readEntries() {      
+    function readEntries() {
       if (sheet.getLastRow() < 2) {
         return [];
       }
@@ -154,13 +154,13 @@ function ConfigInterface() {
     }
 
     function appendEntry(entry) {
-      console.log('Appending entry to ',title,entry);
+      console.log("Appending entry to ", title, entry);
       const row = columns.map((col) => entry[col] || "");
       sheet.appendRow(row);
     }
 
     function appendEntries(entries) {
-      console.log('Appending entries to ',title,entries);
+      console.log("Appending entries to ", title, entries);
       const rows = entries.map((entry) =>
         columns.map((col) => entry[col] || "")
       );
@@ -183,7 +183,7 @@ function ConfigInterface() {
 
   function connectAssessments(
     aspenAssessment: string,
-    googleAssessment: string,    
+    googleAssessment: string
   ) {
     const config = getConfig("AssessmentConnections");
     config.writeValue(aspenAssessment, googleAssessment);
@@ -278,22 +278,22 @@ export function getConfigUrl() {
 export function connectCourses(aspenCourse: string, googleCourse: string) {
   if (!isGoogleAppsScript()) {
     console.log(
-      "connectCourses called with arguments:",      
+      "connectCourses called with arguments:",
       aspenCourse,
       googleCourse
     );
     return;
   }
-  ConfigInterface().connectCourses(aspenCourse,googleCourse);
+  ConfigInterface().connectCourses(aspenCourse, googleCourse);
 }
 
 export function connectAssessments(
   aspenAssessment: string,
-  googleAssessment: string  
+  googleAssessment: string
 ) {
   if (!isGoogleAppsScript()) {
     console.log(
-      "connectAssessments called with arguments:",      
+      "connectAssessments called with arguments:",
       aspenAssessment,
       googleAssessment
     );
@@ -305,7 +305,7 @@ export function connectAssessments(
 export function connectStudents(aspenStudent: string, googleStudent: string) {
   if (!isGoogleAppsScript()) {
     console.log(
-      "connectStudents called with arguments:",      
+      "connectStudents called with arguments:",
       aspenStudent,
       googleStudent
     );
@@ -334,7 +334,7 @@ export function getCourseConnections(): { [key: string]: string } {
   return ConfigInterface().getCourseConnections();
 }
 
-export function getStudentConnections (): { [key: string]: string } {
+export function getStudentConnections(): { [key: string]: string } {
   if (!isGoogleAppsScript()) {
     console.log(
       "getStudentConnections called with no Google Apps Script environment"
@@ -380,7 +380,7 @@ export function logApiCall(apiCall: {
   }
   ConfigInterface().logApiCall(apiCall);
 }
-export function getSettings () {
+export function getSettings() {
   const config = ConfigInterface();
   let assessmentLinks = config.getAssessmentConnections();
   let courseLinks = config.getCourseConnections();

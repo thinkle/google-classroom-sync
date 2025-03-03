@@ -136,37 +136,37 @@ export const GoogleAppsScript = {
       });
     },
 
-     fetchLineItems(course: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Course): Promise<Promise<LineItem[]>> {
+     fetchLineItems(course: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Course): Promise<Promise<import("../gas/types").LineItem[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<LineItem[]>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").LineItem[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchLineItems(course);
       });
     },
 
-     fetchCategories(course: any): Promise<Promise<Category[]>> {
+     fetchCategories(course: any): Promise<Promise<import("../gas/types").Category[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<Category[]>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").Category[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchCategories(course);
       });
     },
 
-     fetchGradingPeriods(): Promise<Promise<GradingPeriod[]>> {
+     fetchGradingPeriods(): Promise<Promise<import("../gas/types").GradingPeriod[]>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<GradingPeriod[]>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").GradingPeriod[]>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .fetchGradingPeriods();
       });
     },
 
-     createLineItem(id: string, lineItemData: LineItem): Promise<Promise<LineItem>> {
+     createLineItem(id: string, lineItemData: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").LineItem): Promise<Promise<import("../gas/types").LineItem>> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: Promise<LineItem>) => resolve(result))
+          .withSuccessHandler((result: Promise<import("../gas/types").LineItem>) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .createLineItem(id, lineItemData);
       });

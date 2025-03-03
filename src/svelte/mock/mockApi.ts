@@ -142,11 +142,32 @@ export async function fetchAspenCourses(teacher) {
 }
 
 export async function fetchCategories(course) {
-  return {
-    href: "#category",
-    sourcedId: "catid",
-    type: "Cat",
-  };
+  return [
+    {
+      href: "#category",
+      sourcedId: "catid",
+      type: "Cat",
+      title: "Self Direction",
+    },
+    {
+      href: "#category2",
+      sourcedId: "catid2",
+      type: "Cat",
+      title: "Enduring Understanding",
+    },
+    {
+      href: "#category3",
+      sourcedId: "catid",
+      type: "Cat",
+      title: "Modeling",
+    },
+    {
+      href: "#category4",
+      sourcedId: "catid",
+      type: "Cat",
+      title: "Experimentation",
+    },
+  ];
 }
 
 export function fetchGoogleAssessments(
@@ -885,16 +906,20 @@ export function fetchAspenTeacher(): Promise<User> {
   return fetchTeacherByEmail("thinkle@innovationcharter.org");
 }
 
-export function logApiCall(apiCall: any): void {}
+export function logApiCall(apiCall: any): void {
+  console.log("logApiCall mock: ", apiCall);
+}
 
-export function logGrades(assessmentId: any, grades: any): void {}
+export function logGrades(assessmentId: any, grades: any): void {
+  console.log("logGrades mock: ", assessmentId, grades);
+}
 
 export function getAssessmentConnections(): {} {
-  return null; // TODO: Replace with mock return value of type {}
+  return {}; // TODO: Replace with mock return value of type {}
 }
 
 export function getCourseConnections(): {} {
-  return null; // TODO: Replace with mock return value of type {}
+  return {}; // TODO: Replace with mock return value of type {}
 }
 
 export function getGradeLog(assessmentId: any): {}[] {
@@ -904,9 +929,23 @@ export function getGradeLog(assessmentId: any): {}[] {
 export function connectAssessments(
   googleAssessment: any,
   aspenAssessment: any
-): void {}
+): void {
+  console.log(
+    "connectAssessments mock: Connecting: ",
+    googleAssessment,
+    "with",
+    aspenAssessment
+  );
+}
 
-export function connectCourses(googleCourse: any, aspenCourse: any): void {}
+export function connectCourses(googleCourse: any, aspenCourse: any): void {
+  console.log(
+    "connectCourses mock: Connecting: ",
+    googleCourse,
+    "with",
+    aspenCourse
+  );
+}
 
 export function getStudentConnections(): { [key: string]: string } {
   return null; // TODO: Replace with mock return value of type { [key: string]: string; }

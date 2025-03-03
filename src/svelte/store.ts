@@ -1,10 +1,17 @@
-import { Writable, writable } from "svelte/store";
+import { derived, Writable, writable } from "svelte/store";
 import { GoogleAppsScript } from "./gasApi";
-
+import type { Readable } from "svelte/store";
 
 export let lineItemStore: Writable<{ [key: string]: any[] }> = writable({});
 
-function createPersistentStore<T>(key: string, startValue: T): Writable<T> & { setKey: (key: string, value: any) => void; addHook: (hook: (key: string, value: any) => void) => void; removeHook: (hook: (key: string, value: any) => void) => void } {
+function createPersistentStore<T>(
+  key: string,
+  startValue: T
+): Writable<T> & {
+  setKey: (key: string, value: any) => void;
+  addHook: (hook: (key: string, value: any) => void) => void;
+  removeHook: (hook: (key: string, value: any) => void) => void;
+} {
   const keyHooks: Array<(key: string, value: any) => void> = [];
 
   const storedValue = localStorage.getItem(key);
@@ -32,27 +39,82 @@ function createPersistentStore<T>(key: string, startValue: T): Writable<T> & { s
       if (index > -1) {
         keyHooks.splice(index, 1);
       }
-    }
+    },
   };
 }
 
-export const courseMap = createPersistentStore<{ [key: string]: string }>("courseMap", {});
-export const assignmentMap = createPersistentStore<{ [key: string]: string }>("assignmentMap", {});
-export const googleAssignments = createPersistentStore<{ [key: string]: any }>("googleAssignments", {});
-export const aspenAssignments = createPersistentStore<{ [key: string]: any }>("aspenAssignments", {});
-export const studentLookup = createPersistentStore<{ [key: string]: any }>("studentLookup", {});
+type KeyMap = {
+  [key: string]: string;
+};
+
+export const courseMap = createPersistentStore<KeyMap>("courseMap", {});
+export const assignmentMap = createPersistentStore<KeyMap>("assignmentMap", {});
+export const googleAssignments = createPersistentStore<{ [key: string]: any }>(
+  "googleAssignments",
+  {}
+);
+export const aspenAssignments = createPersistentStore<{ [key: string]: any }>(
+  "aspenAssignments",
+  {}
+);
+export const studentLookup = createPersistentStore<{ [key: string]: any }>(
+  "studentLookup",
+  {}
+);
 
 assignmentMap.addHook((key, value) => {
-  console.log("assignment map update: update GAS", key,'=>', value);
+  console.log("assignment map update: update GAS", key, "=>", value);
   GoogleAppsScript.connectAssessments(key, value);
 });
-assignmentMap.subscribe(
-  (value) => {
-    console.log("assignment map update", value, new Date());
-  }
-)
+assignmentMap.subscribe((value) => {
+  console.log("assignment map update", value, new Date());
+});
 
 courseMap.addHook((key, value) => {
-  console.log("course map update: update GAS", key,'=>', value);
+  console.log("course map update: update GAS", key, "=>", value);
   GoogleAppsScript.connectCourses(key, value);
 });
+
+// New derived store for handling "rubric" grades, which means our assignment mapping can now
+// go one-to-many
+
+export const OVERALL_GRADE = "__OVERALL_GRADE__";
+
+type RubricMap = {
+  [key: string]: {
+    [key: string]: string;
+  };
+};
+
+/* assignmentMap either contains just an assignment ID *or* it
+contains assignmentid-criterionid -- so the presence of a dash
+tells us the difference. */
+/* WARNING: because in practice we use assignmentMap in two different directions and
+Aspen grades *can* contain dashes, we'll have some nonsense in here as well, BUT
+the nonsense shouldn't collide in a meaningful way (fingers crossed) */
+export const rubricGradeMap = derived<[Readable<KeyMap>], RubricMap>(
+  [assignmentMap],
+  ([$assignmentMap]) => {
+    const rubricMap: RubricMap = {};
+    for (let key of Object.keys($assignmentMap)) {
+      if (!$assignmentMap[key]) {
+        continue;
+      }
+      if (key.includes("-")) {
+        // rubric key!
+        const [assignmentId, criterionId] = key.split("-");
+        if (!rubricMap[assignmentId]) {
+          rubricMap[assignmentId] = {};
+        }
+        rubricMap[assignmentId][criterionId] = $assignmentMap[key];
+      } else {
+        if (!rubricMap[key]) {
+          rubricMap[key] = {};
+        }
+        rubricMap[key][OVERALL_GRADE] = $assignmentMap[key];
+      }
+    }
+    // do we need to "freeze" this or something so it's clear it's not writable?
+    return rubricMap;
+  }
+);

@@ -83,7 +83,8 @@ export function fetchRubricManually(
     criteria: rubric.criteria.map((criterion) => ({
       description: criterion.description,
       levelsMap: {},
-      title: criterion.description,
+      title: criterion.title,
+      jsonDebugging: JSON.stringify(criterion),
       id: criterion.id,
       levels: criterion.levels.map((level) => ({
         description: level.getDescription(),

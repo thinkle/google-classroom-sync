@@ -1,10 +1,11 @@
 <script lang="ts">
+  import GradePosterRubricMode from "./GradePosterRubricMode.svelte";
+
   import SyncManyAssignments from "./SyncManyAssignments.svelte";
 
   import GoogleAssignmentPicker from "./GoogleAssignmentPicker.svelte";
   import Test from "./Test.svelte";
 
-  import AspenCourse from "./AspenCourse.svelte";
   import AspenGradingPeriodSelector from "./AspenGradingPeriodSelector.svelte";
 
   import { onMount, tick } from "svelte";
@@ -17,6 +18,7 @@
   import {
     courseMap,
     assignmentMap,
+    rubricGradeMap,
     googleAssignments,
     aspenAssignments,
   } from "./store";
@@ -35,6 +37,7 @@
   let teacher: User | undefined;
   let aspenCourses: Course[] = [];
   let googleCourses: Course[] = [];
+  $: console.log("The rubricGradeMap =>", $rubricGradeMap);
 
   let loading = false;
   onMount(async () => {
@@ -150,7 +153,7 @@
   let theGoogleCourseID;
   let theGoogleCourse;
   let theGoogleAssignments = [];
-  let theAspenAssignments = [];
+  let theAspenRubricAssignments = null;
   let theGoogleAssignment;
   let theAspenAssignment;
 
@@ -186,9 +189,16 @@
   const MAP_GRADES = 5;
 
   let categories = [];
-
+  let fetchingCategories = false;
   async function fetchCategories() {
-    categories = await GoogleAppsScript.fetchCategories(theAspenCourse);
+    fetchingCategories = true;
+    try {
+      categories = await GoogleAppsScript.fetchCategories(theAspenCourse);
+    } catch (err) {
+      console.error("Error fetching categories");
+      console.error(err);
+    }
+    fetchingCategories = false;
   }
 
   $: if (theAspenCourse) {
@@ -225,7 +235,21 @@
     !theAspenAssignment
   ) {
     console.log("::Google assignment selected");
-    if ($assignmentMap[theGoogleAssignment.id]) {
+    if ($rubricGradeMap[theGoogleAssignment.id]) {
+      theAspenRubricAssignments = {};
+      console.log(
+        "Found rubric mapping ",
+        $rubricGradeMap[theGoogleAssignment.id]
+      );
+      for (let key in $rubricGradeMap[theGoogleAssignment.id]) {
+        let assignmentId = $rubricGradeMap[theGoogleAssignment.id][key];
+        theAspenRubricAssignments[key] = $aspenAssignments[assignmentId];
+      }
+      console.log(
+        "Found rubric assignments for this google assignment",
+        theAspenRubricAssignments
+      );
+    } else if ($assignmentMap[theGoogleAssignment.id]) {
       console.log(
         "We already have a mapping for this assignment",
         theGoogleAssignment.id,
@@ -236,6 +260,9 @@
       if (!theAspenAssignment) {
         console.error("Could not find Aspen assignment with id", aspenId);
       }
+    } else {
+      console.log("No mapping found for this assignment");
+      theAspenAssignment = null;
     }
     step = CHOOSE_ASPEN_ASSIGNMENT;
   }
@@ -244,7 +271,7 @@
     theAspenCourse &&
     theGoogleCourseID &&
     theGoogleAssignment &&
-    theAspenAssignment
+    (theAspenAssignment || theAspenRubricAssignments)
   ) {
     console.log("::Assignments selected, mapping grades");
     step = MAP_GRADES;
@@ -386,6 +413,16 @@
       <SyncManyAssignments {aspenCourses} {googleCourses} {email} {teacher}
       ></SyncManyAssignments>
     {:else if tool == "wizard"}
+      {#if theAspenCourse && !fetchingCategories && !categories.length}Ô
+        <Button on:click={fetchCategories}>Load Categories</Button>
+      {:else if theAspenCourse && !fetchingCategories}
+        Got {categories.length} categories
+      {:else if fetchingCategories}
+        <p>Loading categories...</p>
+        <Button on:click={fetchCategories}>Load again?</Button>
+      {:else}
+        Interesting.. categires={JSON.stringify(categories)}, the course = {theAspenCourse}
+      {/if}
       {#if step == LOADING}
         <p>
           Checking your Credentials with Google & Aspen and trying to grab your
@@ -445,24 +482,36 @@
           googleCourse={theGoogleCourse}
           googleAssignment={theGoogleAssignment}
           {categories}
-          onSelect={(assignment) => {
+          onSelect={(assignment, criterion) => {
             console.log("GoogleAssignmentMapper => onSelect", assignment);
-            theAspenAssignment = assignment;
-            assignmentMap.setKey(
-              theGoogleAssignment.id,
-              theAspenAssignment.sourcedId
-            );
+            if (!criterion) {
+              theAspenAssignment = assignment;
+            }
+            let key = theGoogleAssignment.id;
+            if (criterion) {
+              key += "-" + criterion.id;
+            }
+            assignmentMap.setKey(key, theAspenAssignment.sourcedId);
           }}
         />
       {/if}
       {#if step == MAP_GRADES}
         <h2>Post Grades for {theGoogleAssignment?.title}</h2>
-        <GradePoster
-          googleCourseId={theGoogleCourseID}
-          aspenCourse={theAspenCourse}
-          aspenAssignment={theAspenAssignment}
-          googleAssignment={theGoogleAssignment}
-        />
+        {#if theAspenRubricAssignments}
+          <GradePosterRubricMode
+            googleCourseId={theGoogleCourseID}
+            aspenCourse={theAspenCourse}
+            rubricAssignments={theAspenRubricAssignments}
+            googleAssignment={theGoogleAssignment}
+          />
+        {:else}
+          <GradePoster
+            googleCourseId={theGoogleCourseID}
+            aspenCourse={theAspenCourse}
+            aspenAssignment={theAspenAssignment}
+            googleAssignment={theGoogleAssignment}
+          />
+        {/if}
       {/if}
     {/if}
   </main>

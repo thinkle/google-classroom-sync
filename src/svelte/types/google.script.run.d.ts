@@ -22,7 +22,7 @@ declare namespace google.script {
   fetchLineItems(course: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Course): void;
   fetchCategories(course: any): void;
   fetchGradingPeriods(): void;
-  createLineItem(id: string, lineItemData: LineItem): void;
+  createLineItem(id: string, lineItemData: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").LineItem): void;
   fetchAspenRoster(classId: string): void;
   postGrade(id: any, lineItem: any, student: any, score: any, comment: any): void;
   fetchGoogleAssessments(courseId: any): void;

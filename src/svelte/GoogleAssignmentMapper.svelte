@@ -23,6 +23,8 @@
   export let googleAssignment;
   export let googleCourse;
   export let categories: Category[] = [];
+  export let criterion: Criterion | null = null;
+
   let error = null;
 
   export let onSelect = (
@@ -97,10 +99,6 @@
   function populateLineItem() {
     try {
       console.log("Creating line item from", googleAssignment);
-      let criterion: Criterion;
-      if (rubricLinkMode != OVERALL && rubricLinkMode != NONE && rubric) {
-        criterion = rubric.criteria[rubricLinkMode];
-      }
 
       let matchingCategory = categories.find((c) => {
         c.title.toLowerCase().includes(criterion.title.toLowerCase()) ||
@@ -217,6 +215,18 @@
       googleCourse.id,
       googleAssignment.id
     );
+    console.log("Fetched rubric: ", rubric);
+  }
+
+  let mapKey = googleAssignment.id;
+  $: if (rubricLinkMode <= OVERALL) {
+    mapKey = googleAssignment.id;
+  } else {
+    mapKey = googleAssignment.id + "-" + rubric.criteria[rubricLinkMode].id;
+  }
+
+  function removeLink() {
+    $assignmentMap[mapKey] = null;
   }
 
   const NONE = -2;
@@ -251,7 +261,7 @@
     {/each}
     <li>
       <RadioButton bind:group={rubricLinkMode} value={OVERALL}>
-        Overall Grade?
+        Overall Grade
       </RadioButton>
     </li>
   </ul>
@@ -264,6 +274,7 @@
   <TabItem active={mode == "CREATE"} on:click={() => (mode = "CREATE")}
     >Create a new assignment</TabItem
   >
+  <Button on:click={() => onSelect(null)}>Remove existing link</Button>
 </TabBar>
 
 {#if mode == "LINK"}
