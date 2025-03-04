@@ -85,7 +85,7 @@ rubricAssignments.addHook((googleAssignmentKey, criterionAssignmentMap) => {
     GoogleAppsScript.connectRubricAssessment(
       googleAssignmentKey,
       criterionKey,
-      criterionAssignmentMap[k]
+      criterionAssignmentMap[criterionKey]
     );
   }
 });
