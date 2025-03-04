@@ -189,6 +189,32 @@ function ConfigInterface() {
     config.writeValue(aspenAssessment, googleAssessment);
   }
 
+  function connectRubricAssessment(
+    googleAssessmentId,
+    googleCriterionId,
+    aspenAssessmentId
+  ) {
+    const config = getConfig("RubricAssessmentConnections");
+    config.writeValue(
+      googleAssessmentId + "-" + googleCriterionId,
+      aspenAssessmentId
+    );
+  }
+
+  function getRubricAssessmentConnections(): { [key: string]: string } {
+    const config = getConfig("RubricAssessmentConnections");
+    let rawValues = config.readAllValues();
+    let result = {};
+    for (let key in rawValues) {
+      let [googleAssessmentId, googleCriterionId] = key.split("-");
+      if (!result[googleAssessmentId]) {
+        result[googleAssessmentId] = {};
+      }
+      result[googleAssessmentId][googleCriterionId] = rawValues[key];
+    }
+    return result;
+  }
+
   function connectStudents(aspenStudent: string, googleStudent: string) {
     const config = getConfig("StudentLinks");
     config.writeValue(aspenStudent, googleStudent);
@@ -257,6 +283,8 @@ function ConfigInterface() {
     connectAssessments,
     connectCourses,
     connectStudents,
+    connectRubricAssessment,
+    getRubricAssessmentConnections,
     getAssessmentConnections,
     getCourseConnections,
     getStudentLinks,
@@ -322,6 +350,37 @@ export function getAssessmentConnections(): { [key: string]: string } {
     return {};
   }
   return ConfigInterface().getAssessmentConnections();
+}
+
+export function connectRubricAssessment(
+  googleAssessmentId,
+  googleCriterionId,
+  aspenAssessmentId
+) {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "connectRubricAssessment called with arguments:",
+      googleAssessmentId,
+      googleCriterionId,
+      aspenAssessmentId
+    );
+    return;
+  }
+  ConfigInterface().connectRubricAssessment(
+    googleAssessmentId,
+    googleCriterionId,
+    aspenAssessmentId
+  );
+}
+
+export function getRubricAssessmentConnections(): { [key: string]: string } {
+  if (!isGoogleAppsScript()) {
+    console.log(
+      "getRubricAssessmentConnections called with no Google Apps Script environment"
+    );
+    return {};
+  }
+  return ConfigInterface().getRubricAssessmentConnections();
 }
 
 export function getCourseConnections(): { [key: string]: string } {

@@ -18,6 +18,8 @@ declare namespace google.script {
   connectAssessments(aspenAssessment: string, googleAssessment: string): void;
   connectCourses(aspenCourse: string, googleCourse: string): void;
   connectStudents(aspenStudent: string, googleStudent: string): void;
+  connectRubricAssessment(googleAssessmentId: any, googleCriterionId: any, aspenAssessmentId: any): void;
+  getRubricAssessmentConnections(): void;
   fetchAspenCourses(teacher: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").User): void;
   fetchLineItems(course: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").Course): void;
   fetchCategories(course: any): void;

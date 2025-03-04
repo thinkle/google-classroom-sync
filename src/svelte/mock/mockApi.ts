@@ -56,11 +56,15 @@ export async function fetchLineItems(course) {
       status: "active",
     });
   }
-  return lineItems;
+
+  return [...lineItems, ...lineItemCache];
 }
+
+let lineItemCache = []; // Make sure we return any line items we've created...
 
 export async function createLineItem(data) {
   console.log("Created line item!", data);
+  lineItemCache.push(data);
   return data;
 }
 
@@ -1023,4 +1027,14 @@ export function fetchRubric(
     baseRubric.criteriaMap[c.id] = c;
   }
   return baseRubric;
+}
+
+export function connectRubricAssessment(
+  googleAssessmentId: any,
+  googleCriterionId: any,
+  aspenAssessmentId: any
+): void {}
+
+export function getRubricAssessmentConnections(): { [key: string]: string } {
+  return null; // TODO: Replace with mock return value of type { [key: string]: string; }
 }

@@ -27,6 +27,8 @@ export {
   connectAssessments,
   connectCourses,
   connectStudents,
+  connectRubricAssessment,
+  getRubricAssessmentConnections,
 } from "./logging";
 
 export function fetchAspenTeacher() {

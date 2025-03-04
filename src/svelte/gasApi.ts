@@ -127,6 +127,24 @@ export const GoogleAppsScript = {
       });
     },
 
+     connectRubricAssessment(googleAssessmentId: any, googleCriterionId: any, aspenAssessmentId: any): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .connectRubricAssessment(googleAssessmentId, googleCriterionId, aspenAssessmentId);
+      });
+    },
+
+     getRubricAssessmentConnections(): Promise<{ [key: string]: string; }> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: { [key: string]: string; }) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getRubricAssessmentConnections();
+      });
+    },
+
      fetchAspenCourses(teacher: import("/Users/thinkle/Projects/google-classroom-sync/src/gas/types").User): Promise<Promise<import("../gas/types").Course[]>> {
       return new Promise((resolve, reject) => {
         google.script.run

@@ -18,7 +18,7 @@
   import {
     courseMap,
     assignmentMap,
-    rubricGradeMap,
+    rubricAssignments,
     googleAssignments,
     aspenAssignments,
   } from "./store";
@@ -37,7 +37,7 @@
   let teacher: User | undefined;
   let aspenCourses: Course[] = [];
   let googleCourses: Course[] = [];
-  $: console.log("The rubricGradeMap =>", $rubricGradeMap);
+  $: console.log("$rubricAssignments =>", $rubricAssignments);
 
   let loading = false;
   onMount(async () => {
@@ -235,14 +235,14 @@
     !theAspenAssignment
   ) {
     console.log("::Google assignment selected");
-    if ($rubricGradeMap[theGoogleAssignment.id]) {
+    if ($rubricAssignments[theGoogleAssignment.id]) {
       theAspenRubricAssignments = {};
       console.log(
         "Found rubric mapping ",
-        $rubricGradeMap[theGoogleAssignment.id]
+        $rubricAssignments[theGoogleAssignment.id]
       );
-      for (let key in $rubricGradeMap[theGoogleAssignment.id]) {
-        let assignmentId = $rubricGradeMap[theGoogleAssignment.id][key];
+      for (let key in $rubricAssignments[theGoogleAssignment.id]) {
+        let assignmentId = $rubricAssignments[theGoogleAssignment.id][key];
         theAspenRubricAssignments[key] = $aspenAssignments[assignmentId];
       }
       console.log(
@@ -473,10 +473,6 @@
       {/if}
       {#if step == CHOOSE_ASPEN_ASSIGNMENT}
         <h2>Choose Aspen Assignment</h2>
-        <!-- Fix Me: We have to handle the new onSelect signature where we can either... 
-         (1) Call onSelect(assignment) with just an assignment like we are used to. OR 
-         (2) Call onSelect(assignment,criterion) linking ONE criteria from the assignment 
-             rubric to a gradebook line item in case we want multiple line items per assignment...   -->
         <GoogleAssignmentMapper
           aspenCourse={theAspenCourse}
           googleCourse={theGoogleCourse}
@@ -486,12 +482,19 @@
             console.log("GoogleAssignmentMapper => onSelect", assignment);
             if (!criterion) {
               theAspenAssignment = assignment;
+              assignmentMap.setKey(
+                theGoogleAssignment.id,
+                theAspenAssignment.sourcedId
+              );
+            } else {
+              let criterionMapping =
+                $rubricAssignments[theGoogleAssignment.id] || {};
+              criterionMapping[criterion.id] = assignment.sourcedId;
+              rubricAssignments.setKey(
+                theGoogleAssignment.id,
+                criterionMapping
+              );
             }
-            let key = theGoogleAssignment.id;
-            if (criterion) {
-              key += "-" + criterion.id;
-            }
-            assignmentMap.setKey(key, theAspenAssignment.sourcedId);
           }}
         />
       {/if}
