@@ -96,6 +96,7 @@
   }
   async function getAspenTeacher() {
     teacher = await GoogleAppsScript.fetchAspenTeacher();
+    step = CHOOSE_ASPEN_COURSE;
   }
   let loadingCourses = false;
 
@@ -106,6 +107,8 @@
       if (!Array.isArray(aspenCourses)) {
         console.error("No courses found");
         aspenCourses = [];
+      } else {
+        step = CHOOSE_ASPEN_COURSE;
       }
     }
     loadingCourses = false;
@@ -175,8 +178,25 @@
     fetchingAssignments = false;
   }
 
-  const selectAspenCourse = async (event) => {
-    theAspenCourse = event.detail.selectedClass;
+  const setAspenCourse = (course) => {
+    fetchCategories();
+    theAspenCourse = course;
+    step = CHOOSE_GOOGLE_COURSE;
+    theGoogleCourse = null;
+    theGoogleCourseID = null;
+    theGoogleAssignments = [];
+    theAspenAssignment = null;
+    theGoogleAssignment = null;
+    theAspenRubricAssignments = null;
+    if ($courseMap[course.sourcedId]) {
+      theGoogleCourseID = $courseMap[course.sourcedId];
+      fetchGoogleCourse();
+      step = CHOOSE_GOOGLE_ASSIGNMENT;
+    }
+  };
+
+  const selectAspenCourseCallback = async (event) => {
+    setAspenCourse(event.detail.selectedClass);
   };
 
   let step = 0;
@@ -201,31 +221,29 @@
     fetchingCategories = false;
   }
 
-  $: if (theAspenCourse) {
-    fetchCategories();
-  }
-
   $: ready = teacher && aspenCourses.length > 0;
   $: console.log("Updated ready =>", ready);
   $: console.log("aspen courses=>", aspenCourses);
   $: if (!ready) {
     step = 0;
   }
-  $: if (ready && !theAspenCourse) {
+
+  /* $: if (ready && !theAspenCourse) {
     step = CHOOSE_ASPEN_COURSE;
     theAspenAssignment = null;
-  }
-  $: if (ready && theAspenCourse && !theGoogleCourseID) {
+  } */
+
+  /*  $: if (ready && theAspenCourse && !theGoogleCourseID) {
     step = CHOOSE_GOOGLE_COURSE;
     theGoogleAssignment = null;
     theGoogleCourse = null;
-  }
-  $: if (ready && theAspenCourse && theGoogleCourseID && !theGoogleAssignment) {
+  } */
+  /* $: if (ready && theAspenCourse && theGoogleCourseID && !theGoogleAssignment) {
     step = CHOOSE_GOOGLE_ASSIGNMENT;
     console.log("::Courses selected, choosing google assignment");
     theAspenAssignment = null;
     fetchGoogleCourse();
-  }
+  } */
 
   $: if (
     ready &&
@@ -264,18 +282,8 @@
       console.log("No mapping found for this assignment");
       theAspenAssignment = null;
     }
-    step = CHOOSE_ASPEN_ASSIGNMENT;
   }
-  $: if (
-    ready &&
-    theAspenCourse &&
-    theGoogleCourseID &&
-    theGoogleAssignment &&
-    (theAspenAssignment || theAspenRubricAssignments)
-  ) {
-    console.log("::Assignments selected, mapping grades");
-    step = MAP_GRADES;
-  }
+
   $: if (theAspenCourse && $courseMap[theAspenCourse.sourcedId]) {
     theGoogleCourseID = $courseMap[theAspenCourse.sourcedId];
   }
@@ -344,6 +352,11 @@
           on:click={() => {
             console.log("::: Set aspen course to null");
             theAspenCourse = null;
+            theGoogleAssignment = null;
+            theAspenAssignment = null;
+            theGoogleCourse = null;
+            theGoogleCourseID = null;
+            step = CHOOSE_ASPEN_COURSE;
           }}>&times;</MiniButton
         >
       </h3>
@@ -367,6 +380,10 @@
             console.log("::: Remove aspen->google COURSE mapping");
             courseMap.setKey(theAspenCourse.sourcedId, null);
             theGoogleCourseID = null;
+            theGoogleCourse = null;
+            theGoogleAssignment = null;
+            theAspenAssignment = null;
+            step = CHOOSE_GOOGLE_COURSE;
           }}
         >
           &times;
@@ -383,6 +400,9 @@
           on:click={() => {
             console.log("::: Set google assignment to null");
             theGoogleAssignment = null;
+            theAspenAssignment = null;
+            theAspenRubricAssignments = null;
+            step = CHOOSE_GOOGLE_ASSIGNMENT;
           }}>&times;</MiniButton
         >
       </h3>
@@ -400,7 +420,10 @@
             // These have to take effect?
             //tick().then(
             //  ()=>{
+            console.log("Reset assignments");
             theAspenAssignment = null;
+            theAspenRubricAssignments = null;
+            step = CHOOSE_ASPEN_ASSIGNMENT;
             //  }
             //)
           }}>&times;</MiniButton
@@ -448,11 +471,26 @@
 
       {#if step == CHOOSE_ASPEN_COURSE}
         Got {aspenCourses.length} courses
-        <AspenClassList courses={aspenCourses} on:select={selectAspenCourse} />
+        <AspenClassList
+          courses={aspenCourses}
+          on:select={selectAspenCourseCallback}
+        />
       {/if}
 
       {#if step == CHOOSE_GOOGLE_COURSE}
-        <GoogleCourseLinker aspenCourse={theAspenCourse} />
+        <GoogleCourseLinker
+          aspenCourse={theAspenCourse}
+          onLink={(googleCourse, aspenId) => {
+            if (googleCourse) {
+              console.log("Linking", googleCourse, aspenId);
+              theGoogleCourseID = googleCourse.id;
+              theGoogleCourse = googleCourse;
+              fetchAssignments();
+              fetchGoogleCourse();
+              step = CHOOSE_GOOGLE_ASSIGNMENT;
+            }
+          }}
+        />
       {/if}
       {#if step == CHOOSE_GOOGLE_ASSIGNMENT}
         {#if !theGoogleCourse}
@@ -468,6 +506,7 @@
           assignments={theGoogleAssignments}
           onSelect={(assignment) => {
             theGoogleAssignment = assignment;
+            step = CHOOSE_ASPEN_ASSIGNMENT;
           }}
         />
       {/if}
@@ -495,6 +534,7 @@
                 criterionMapping
               );
             }
+            step = MAP_GRADES;
           }}
         />
       {/if}
