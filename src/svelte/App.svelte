@@ -245,13 +245,7 @@
     fetchGoogleCourse();
   } */
 
-  $: if (
-    ready &&
-    theAspenCourse &&
-    theGoogleCourseID &&
-    theGoogleAssignment &&
-    !theAspenAssignment
-  ) {
+  function updateMappedAssignment() {
     console.log("::Google assignment selected");
     if ($rubricAssignments[theGoogleAssignment.id]) {
       theAspenRubricAssignments = {};
@@ -267,6 +261,7 @@
         "Found rubric assignments for this google assignment",
         theAspenRubricAssignments
       );
+      step = MAP_GRADES;
     } else if ($assignmentMap[theGoogleAssignment.id]) {
       console.log(
         "We already have a mapping for this assignment",
@@ -278,9 +273,11 @@
       if (!theAspenAssignment) {
         console.error("Could not find Aspen assignment with id", aspenId);
       }
+      step = MAP_GRADES;
     } else {
       console.log("No mapping found for this assignment");
       theAspenAssignment = null;
+      step = CHOOSE_ASPEN_ASSIGNMENT;
     }
   }
 
@@ -436,7 +433,7 @@
       <SyncManyAssignments {aspenCourses} {googleCourses} {email} {teacher}
       ></SyncManyAssignments>
     {:else if tool == "wizard"}
-      {#if theAspenCourse && !fetchingCategories && !categories.length}Ô
+      {#if theAspenCourse && !fetchingCategories && !categories.length}
         <Button on:click={fetchCategories}>Load Categories</Button>
       {:else if theAspenCourse && !fetchingCategories}
         Got {categories.length} categories
@@ -507,6 +504,7 @@
           onSelect={(assignment) => {
             theGoogleAssignment = assignment;
             step = CHOOSE_ASPEN_ASSIGNMENT;
+            updateMappedAssignment();
           }}
         />
       {/if}
