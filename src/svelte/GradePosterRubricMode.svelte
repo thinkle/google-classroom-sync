@@ -170,7 +170,7 @@
               {#each g.rubricGrades as rg}
                 <div>
                   <strong>{rg.criterion}</strong>: {rg.points}
-                  <em>({rg.level})</em>
+                  {#if rg.level}<em>({rg.level})</em>{/if}
                 </div>
               {/each}
             {:else}
