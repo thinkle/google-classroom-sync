@@ -2,6 +2,9 @@
 
 ### Rubric Support
 
+- Refactor: Make steps in "wizard" have explicit callbacks so we move between steps using explicit function calls rather than reactive code. This makes things like backtracking easier. (x)
+- Check on functionality of store refactor (we were halfway through adding explicit callbacks...)
+
 - Get rubric grades imported.
 - Build interface for mapping rubric grade to unique assignments, meaning...
 
