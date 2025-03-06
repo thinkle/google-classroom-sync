@@ -121,7 +121,7 @@ function mapRubricGrades(rubricMap: RubricMap, rubric: Rubric): RubricGrade[] {
     rubricGrades.push({
       criterion: criterion?.title,
       level: level?.title,
-      description: level.description,
+      description: level?.description,
       points,
       criterionId: key,
       levelId: grade.levelId,
