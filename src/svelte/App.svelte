@@ -478,6 +478,7 @@
         <GoogleCourseLinker
           aspenCourse={theAspenCourse}
           onLink={(googleCourse, aspenId) => {
+            console.log("Linklinklink", googleCourse, aspenId);
             if (googleCourse) {
               console.log("Linking", googleCourse, aspenId);
               theGoogleCourseID = googleCourse.id;

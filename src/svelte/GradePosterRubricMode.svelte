@@ -1,7 +1,13 @@
 <script lang="ts">
   import { studentLookup } from "./store";
   import { GoogleAppsScript } from "./gasApi";
-  import { Button, FormItem, Checkbox } from "contain-css-svelte";
+  import {
+    MiniButton,
+    Button,
+    FormItem,
+    Checkbox,
+    Progress,
+  } from "contain-css-svelte";
   // Each "rubricAssignments[criterionId]" is the Aspen lineItem for that criterion
   export let rubricAssignments: Record<string, any>;
   export let googleAssignment;
@@ -11,10 +17,12 @@
     "Rubric Mode Poster got rubricAssignments: ",
     rubricAssignments
   );
+
   let useDraft = false;
   let grades = [];
   let roster = [];
   let fetchingState = "idle"; // "fetching", etc.
+  let progressState: "uninitiated" | "inprogress" | "complete" = "uninitiated";
   let postedLog = []; // from your GoogleAppsScript.getGradeLog call
   let results = [];
 
@@ -25,7 +33,7 @@
     lastGradeChangeTimestamp: number
   ) {
     // Look in postedLog for an entry with the same “assignment-criterion-student” combo
-    const uniqueId = `${googleAssignment.id}-${criterionId}-${studentEmail}`;
+    const uniqueId = makeUniqueId(studentEmail, criterionId);
     const found = postedLog.find(
       (p) => p.uniqueId === uniqueId && p.timestamp >= lastGradeChangeTimestamp
     );
@@ -34,7 +42,7 @@
 
   // Utility: Make a unique ID for storing in your posted log
   function makeUniqueId(studentEmail: string, criterionId: string) {
-    return `${googleAssignment.id}-${criterionId}-${studentEmail}`;
+    return `${googleAssignment.id}+${criterionId}+${studentEmail}`;
   }
 
   async function fetchGrades() {
@@ -114,9 +122,15 @@
             points,
             g.comment || ""
           );
-          results.push({ success: true, grade: g, subGrade, uniqueId });
+          results = [
+            ...results,
+            { success: true, grade: g, subGrade, uniqueId },
+          ];
         } catch (err) {
-          results.push({ success: false, grade: g, subGrade, error: err });
+          results = [
+            ...results,
+            { success: false, grade: g, subGrade, error: err },
+          ];
         }
       }
     }
@@ -127,8 +141,7 @@
       GoogleAppsScript.logGrades(
         googleAssignment.id,
         successfullyPosted.map((r) => ({
-          uniqueId: r.uniqueId,
-          email: r.grade.studentEmail,
+          email: r.uniqueId, // bit of a hack here...
           timestamp: r.grade.lastGradeChangeTimestamp,
           score: r.subGrade.points,
         }))
@@ -146,9 +159,11 @@
 <Button on:click={postRubricGrades} disabled={grades.length === 0}>
   Post Rubric Sub‐Grades
 </Button>
-
-{#if fetchingState.startsWith("fetching")}
-  <p>Fetching: {fetchingState}</p>
+{#if fetchingState}
+  <Progress value="indeterminate" label={fetchingState} state={progressState} />
+  {#if fetchingState == "done"}
+    <MiniButton on:click={() => (fetchingState = "idle")}>&times;</MiniButton>
+  {/if}
 {/if}
 
 {#if grades.length}

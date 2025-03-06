@@ -1,8 +1,8 @@
-<script>
+<script lang="ts">
   import { Button, MenuList } from "contain-css-svelte";
   import { GoogleAppsScript } from "./gasApi";
   export let aspenCourse;
-  export const onLink = (googleId, aspenId) => {};
+  export let onLink: (googleId, aspenId) => void;
   import { courseMap } from "./store";
   let courses = [];
   async function loadCourses() {
@@ -19,6 +19,7 @@
     <li>
       <Button
         on:click={() => {
+          console.log("clicked a course");
           courseMap.setKey(aspenCourse.sourcedId, course.id);
           onLink(course, aspenCourse.sourcedId);
         }}>{course.name}</Button
